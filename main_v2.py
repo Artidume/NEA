@@ -2,13 +2,13 @@
 class Program:
     def __init__(self,max_size=10000):
         self.main_memory=[]
-        for i in range(0,max_size): #initialising MAIN MEM
-            self.main_memory.append(bytes(0))
+        for i in range(0,max_size): #initialising MAIN MEM. not done via bytes bc its too hard
+            self.main_memory.append(0)
         #init registers, PC, and <flags (TBD)>
-        self.isRunning=True
-        self.PC=0
+        self.isRunning=True 
+        self.PC=0 #program counter
         self.r=[0,0,0,0,0,0,0,0,0,0,0,0] #List of registers 1 through 12
-        self.cmp_output=0 #Output of compare function. 0=Null, otherwise follows AQA standard.
+        self.cmp_output=0 #Output of compare function. 0=Null, otherwise follows AQA standard ("EQ","NE","GT","LT").
         self.commands={
             "LDR":self.LDR,
             "STR":self.STR,
@@ -64,3 +64,7 @@ class Program:
         self.r[d]=self.r[n] >> operand2 # >> = bitwise shift right
     def HALT(self):
         self.isRunning=False # will be checked next loop.
+    def run_command(self):
+        self.command=self.main_memory[self.PC] #fetch command and operand (array of opcode,operand)
+        self.PC+=1 #increment PC
+        self.commands[self.command[0]]()
