@@ -1,4 +1,9 @@
 #TODO: Debug mode, finish commands, flesh out parser, Online server
+
+'''
+TEST: DOES THIS WORK? I HOPE SO
+'''
+
 class Program:
     def __init__(self,max_size=10000):
         self.main_memory=[]
