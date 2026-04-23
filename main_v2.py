@@ -33,9 +33,8 @@ class Program:
             "LSL":self.LSL,
             "LSR":self.LSR,
             "HALT":self.HALT,
-            "OUTPUT":self.OUTPUT 
+            "OUTPUT":self.OUTPUT, 
             "HALT":self.HALT,
-            "OUTPUT":self.OUTPUT 
         }
         self.labels={} # Will store key:value pairs of labels and their locations.
     
@@ -63,7 +62,13 @@ class Program:
         self.r[operands[0]]=operands[1]
 
     def CMP(self,operands): #(n,operand2)
-    
+        self.cmp_output=""
+        if self.r[operands[0]]>operands[1]:
+            self.cmp_output.append("GT NE ")
+        elif self.r[operands[0]]<operands[1]:
+            self.cmp_output.append("LT NE ")
+        elif self.r[operands[0]]==operands[1]:
+            self.cmp_output.append("EQ ")
     #I believe LDR is complete.
     def LDR(self,operands): #(d,memory_ref,!!address_type!!) NOTE: an extra paramter is passed to say the address type
         if operands[2]=="DIRECT":#get value from address pointed to in memory
