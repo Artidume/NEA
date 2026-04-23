@@ -34,8 +34,35 @@ class Program:
             "LSR":self.LSR,
             "HALT":self.HALT,
             "OUTPUT":self.OUTPUT 
+            "HALT":self.HALT,
+            "OUTPUT":self.OUTPUT 
         }
         self.labels={} # Will store key:value pairs of labels and their locations.
+    
+    #I believe LDR is complete.
+    def LDR(self,operands): #(d,memory_ref,!!address_type!!) NOTE: an extra paramter is passed to say the address type
+        if operands[2]=="DIRECT":#get value from address pointed to in memory
+            if operands[1]>len(self.main_memory)-1: #checking memory_ref does not exceed storage constraint
+                print(f"FATAL ERROR: memory_ref ({operands[1]}) exceeds storage size ({len(self.main_memory)-1} data blocks).")
+                self.isRunning=False #halt program
+                return 0 #exit instruction
+            self.r[operands[0]]=self.main_memory[operands[1]]
+        else: #assume it is immediate.
+            self.r[operands[0]]=operands[1]
+    
+    def STR(self,operands): #(d,memory_ref)
+        self.main_memory[operands[1]]=self.r[operands[0]]
+    
+    def ADD(self,operands): #(d,n,operand2)
+        self.r[operands[0]]=self.r[operands[1]]+operands[2]
+    
+    def SUB(self,operands): #(d,n,memory_ref)
+        self.r[operands[0]]=self.r[operands[1]]-self.main_memory[operands[2]]
+
+    def MOV(self,operands): #(d,operand2)
+        self.r[operands[0]]=operands[1]
+
+    def CMP(self,operands): #(n,operand2)
     
     #I believe LDR is complete.
     def LDR(self,operands): #(d,memory_ref,!!address_type!!) NOTE: an extra paramter is passed to say the address type
