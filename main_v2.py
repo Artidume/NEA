@@ -1,3 +1,5 @@
+import program_parser
+
 #TODO: FINISH COMMANDS, create debug mode, create assembler, cry
 '''NOTE:
     - Harvard Architecture used because I do not deem it necessary to include executing data as instructions.
@@ -69,7 +71,6 @@ class Program:
             self.cmp_output.append("LT NE ")
         elif self.r[operands[0]]==operands[1]:
             self.cmp_output.append("EQ ")
-    #I believe LDR is complete.
     def LDR(self,operands): #(d,memory_ref,!!address_type!!) NOTE: an extra paramter is passed to say the address type
         if operands[2]=="DIRECT":#get value from address pointed to in memory
             if operands[1]>len(self.main_memory)-1: #checking memory_ref does not exceed storage constraint
@@ -83,32 +84,45 @@ class Program:
     def STR(self,operands): #(d,memory_ref)
         self.main_memory[operands[1]]=self.r[operands[0]]
     
-    def ADD(self,operands): #(d,n,operand2)
-        self.r[operands[0]]=self.r[operands[1]]+operands[2]
-    
-    def SUB(self,operands): #(d,n,memory_ref)
-        self.r[operands[0]]=self.r[operands[1]]-self.main_memory[operands[2]]
+    def ADD(self,operands): #(d,n,operand2, !!mode!!) mode checks whether <operand2> is a register
+        if operands[3]!="register":
+            self.r[operands[0]]=self.r[operands[1]]+operands[2]
+        else:
+            #print("REGGIE DEGGIE")    #(The program detects a register)
+            self.r[operands[0]]=self.r[operands[1]]+self.r[operands[2]]
+    def SUB(self,operands): #(d,n,operand2, !!mode!!) mode checks whether <operand2> is a register
+        if operands[3]!="register": 
+            self.r[operands[0]]=self.r[operands[1]]-operands[2]
+        else:
+            self.r[operands[0]]=self.r[operands[1]]-self.r[operands[2]]
 
     def MOV(self,operands): #(d,operand2)
-        self.r[operands[0]]=operands[1]
+        if operands[2]!="register":
+            self.r[operands[0]]=operands[1]
+        else:
+            self.r[operands[0]]=self.r[operands[1]]
 
     def CMP(self,operands): #(n,operand2)
         self.cmp_output=""
         if self.r[operands[0]]>operands[1]:
-            self.cmp_output.append("GT NE ")
+            self.cmp_output+=("GT NE ")
         elif self.r[operands[0]]<operands[1]:
-            self.cmp_output.append("LT NE ")
+            self.cmp_output+=("LT NE ")
         elif self.r[operands[0]]==operands[1]:
-            self.cmp_output.append("EQ ")
+            self.cmp_output+=("EQ ")
 
     def B(self,operands): #(label,condition)
-        #the way this works is by trying to use a condition. If it doesn't exist, assume it is a branch with no condition, and branch.
-        try: 
-            if operands[1].upper()==self.cmp_output: #condition met. .upper() to allow for "eq" and "EQ" to evaluate correctly.
-                self.PC=operands[0]
-        except:
+        if operands[1]=="NO CONDITION":
             self.PC=operands[0]
-
+        else:
+            #print(self.cmp_output) #check CMP instruction working
+            if operands[1] in self.cmp_output: #if condition matches
+                self.PC=operands[0] #move PC to new location
+            else:
+                #print("No dice") #(condition failed)
+                pass
+        #print("PC",self.PC) #Test it has moved the PC correctly
+        #print(self.program_memory[self.PC]) Show instruction at that memory address
 
     def AND(self,operands): #(d,n,operand2)
         self.r[operands[0]]=self.r[operands[1]] & operands[2] # & = bitwise and
@@ -146,16 +160,17 @@ class Program:
         self.PC+=1 #increment PC
         
         if self.command[0]==0: #check that instruction present at memory location pointed to by PC
-            print(f"FATAL ERROR: No command found at location {self.PC}.")
+            print(f"FATAL ERROR: No command found at location {self.PC}. Are you missing a HALT?")
             self.isRunning=False #disable program execution
             return 0#exit function before trying to run non-existent instruction
         #print(self.command,self.PC) #debug to check it is running the proper command.
         self.commands[self.command[0]](self.command[1]) #perform command
-        print(self.r[0]) #check contents of R1
+        #print(self.r[0]) #check contents of R1
     
     def run_program(self):
         while self.isRunning: #isRunning only stops once a HALT is reached.
             self.fetch_execute_cycle()
+            #print(self.r)
             
 
     #Notice the Harvard Architecture, so that I do not need to introduce my own binary table for instructions, or running data as instructions.
@@ -165,13 +180,20 @@ class Program:
     def set_main_memory(self,location,data):
         self.main_memory[location]=data
 
-test_program=Program()
+main_program=Program()
 
-#Test program to check LDR operating as intended.
-'''
-test_program.set_program_memory(0,"LDR",[0,1,"IMMEDIATE"])
-test_program.set_main_memory(2,20)
-test_program.set_program_memory(1,"LDR",[0,2,"DIRECT"])
-#test_program.set_program_memory(2,"HALT",[])
-test_program.run_program()
-'''
+program_as_an_array=program_parser.getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()
+#print(program_as_an_array) #Show program as parsed by parser
+if program_as_an_array=="ERROR":
+    pass
+else:
+    memory_point=0
+    FatalError=False
+    for i in program_as_an_array:
+        FatalError=main_program.set_program_memory(memory_point,i[0],i[1])
+        memory_point+=1
+        if FatalError=="ERROR": 
+            pass
+    if FatalError!="ERROR":
+        #print("---------------------------") #separates debug text with program output. not needed in regular runtime.
+        main_program.run_program()
