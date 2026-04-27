@@ -78,6 +78,7 @@ class Program:
                 self.isRunning=False #halt program
                 return 0 #exit instruction
             self.r[operands[0]]=self.main_memory[operands[1]]
+            print(self.r[operands[0]], self.main_memory[operands[1]])
         else: #assume it is immediate.
             self.r[operands[0]]=operands[1]
     
@@ -143,6 +144,7 @@ class Program:
         self.r[operands[0]]=self.r[operands[1]] >> operands[2] # >> = bitwise shift right
     
     def HALT(self,operands): #no operands with command, but python needs the arg otherwise it cries.
+        print("HALT TEST")
         self.isRunning=False # will be checked next loop.
     
     #-------------------------------------------- BELOW ARE UNNOFFICIAL INSTRUCTIONS USED TO AID THE PROGRAMMER. --------------------------------------------
@@ -195,5 +197,5 @@ else:
         if FatalError=="ERROR": 
             pass
     if FatalError!="ERROR":
-        #print("---------------------------") #separates debug text with program output. not needed in regular runtime.
+        print("---------------------------") #separates debug text with program output. not needed in regular runtime.
         main_program.run_program()

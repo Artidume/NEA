@@ -1,24 +1,31 @@
 #NOTE: I am using ".aqasm" as my file extension. Only because its fun. is a portmanteau of aqa and asm.
-def parse(line,line_number):
+def parse(line):
     if line=="":
+        #print(line,"EMPTY")
         return None
     try:
+        #print(line)
         output=[]
         line=line.replace("\n"," ") #remove trailing line break
         splitted=line.split(" ",1) #splits into opcode and operand in the form ["opcode","operands"] 
         opcode=splitted[0]
+        if opcode=="HALT":
+            return ["HALT",[]] #exit parser. empty array used as empty "operands"
         if "B" not in opcode:
             output.append(opcode) #write the opcode to the line
         else:
             output.append(opcode[0])
-        if opcode=="HALT":
-            return ["HALT",[]] #exit parser. empty array used as empty "operands"
         operands=splitted[1] #need to split from str to list
-        operands=operands.split(", ") #separates using ", ". now each operand is distinct.
+        
+        #print("CHEW",operands)
+        operands=operands.strip().split(",") #separates using ", ". now each operand is distinct.
+        
+        for i in range(len(operands)):
+            operands[i]=operands[i].strip() #remove whitespace from either side of operand (" r1 " -> "r1")
+            #print(operands[i])
         decoded_operands=[]
-        #print(operands)
         for operand in operands:
-            #print(operand)
+            #print(operand) #show current operand
 
             if operand[0]=="#": #using immediate addressing (value given, not in memory)
                 address_mode="IMMEDIATE"
@@ -57,20 +64,23 @@ def parse(line,line_number):
         #print(output)
     except:
         if len(splitted)==0:
-            print(f"FATAL ERROR: Command written incorrectly at line {line_number}. Check for whitespace characters like a space.")
-        return "ERROR"
+            print(f"FATAL ERROR: Command written incorrectly. Check for whitespace characters like a space.")
+        return "ERROR: Parsing"
 
 def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme():
     program=[]
     with open("program.aqasm","r") as f:
-        line=parse(f.readline(),0)
-        line_number=1
+        line="placeholder that doesn't matter"
         while line is not None and line!="ERROR":
-            program.append(line)
-            line=parse(f.readline(),line_number)
-            line_number+=1
+            readline=f.readline()
+            line=parse(readline)
+            if line is not None and line!="ERROR":
+                program.append(line)
     if line!="ERROR":
         return program
     else:
         return "ERROR"
-#print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()) #test
+
+
+if __name__ =="__main__":
+    print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()) #test
