@@ -7,3 +7,4 @@ OUTPUT r2
 ADD r2, r2, r1
 OUTPUT r2
 HALT
+;comment
