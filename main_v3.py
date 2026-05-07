@@ -2,6 +2,7 @@ import program_parser
 
 #TODO: FINISH COMMANDS, create debug mode, create assembler, cry
 #TODO: FIX CMP COMMAND
+#TODO: Add debug mode to all instrucitons
 '''NOTE:
     - Pivotted to Von Neumann architecture, worth it to closer mimic original design.
     - This may change in the future, and if so, DELETE THIS MESSAGE.
@@ -22,7 +23,8 @@ class Memory:
         return self.memoryArray[location]
 #Program Composed of ("has-a") Memory
 class Program:
-    def __init__(self):
+    def __init__(self,debug_mode=False):
+        self.debug_mode=debug_mode #will show all "output" types, incl. PC
         self.memory = Memory()
         self.isRunning=True
         self.PC=0
@@ -46,91 +48,97 @@ class Program:
             "OUTPUT":self.OUTPUT, 
             "HALT":self.HALT,
         }
-    def LDR(self,operands): #(d,memory_ref,!!address_type!!) NOTE: an extra paramter is passed to say the address type
-        if operands[2]=="DIRECT":#get value from address pointed to in memory
+    def LDR(self,operands): #(d,memory_ref,!!address_type1,address_type2!!) NOTE: an extra paramter is passed to say the address type. ignore address_type1
+        if self.debug_mode:
+            print(f"OPERANDS FOR LDR INSTRUCTION: {operands}") #show operands
+        if operands[3]=="DIRECT":#get value from address pointed to in memory
             if operands[1]>self.memory.getLength()-1: #checking memory_ref does not exceed storage constraint
-                print(f"FATAL ERROR: memory_ref ({operands[1]}) exceeds storage size ({len(self.main_memory)-1} data blocks).")
+                print(f"FATAL ERROR: memory_ref ({operands[1]}) exceeds storage size ({self.memory.getLength()-1} data blocks).")
                 self.isRunning=False #halt program
                 return 0 #exit instruction
-            print(f"OPERANDS: {operands}")
+            if self.debug_mode:
+                print(f"DATA FOUND AT LOCATION {operands[1]}: {self.memory.fetch(operands[1])}") #show what is present at memory location
             self.r[operands[0]]=self.memory.fetch(operands[1])
         else: #assume it is immediate.
             self.r[operands[0]]=operands[1]
-        
-    def STR(self,operands): #(d,memory_ref)
-        self.main_memory[operands[1]]=self.r[operands[0]]
-    
-    def ADD(self,operands): #(d,n,operand2)
-        self.r[operands[0]]=self.r[operands[1]]+operands[2]
-    
-    def SUB(self,operands): #(d,n,memory_ref)
-        self.r[operands[0]]=self.r[operands[1]]-self.main_memory[operands[2]]
-
-    def MOV(self,operands): #(d,operand2)
-        self.r[operands[0]]=operands[1]
-
-    def CMP(self,operands): #(n,operand2)
-        self.cmp_output=""
-        if self.r[operands[0]]>operands[1]:
-            self.cmp_output.append("GT NE ")
-        elif self.r[operands[0]]<operands[1]:
-            self.cmp_output.append("LT NE ")
-        elif self.r[operands[0]]==operands[1]:
-            self.cmp_output.append("EQ ")
-    def LDR(self,operands): #(d,memory_ref,!!address_type!!) NOTE: an extra paramter is passed to say the address type
-        if operands[2]=="DIRECT":#get value from address pointed to in memory
-            if operands[1]>len(self.main_memory)-1: #checking memory_ref does not exceed storage constraint
-                print(f"FATAL ERROR: memory_ref ({operands[1]}) exceeds storage size ({len(self.main_memory)-1} data blocks).")
-                self.isRunning=False #halt program
-                return 0 #exit instruction
-            self.r[operands[0]]=self.main_memory[operands[1]]
-            print(self.r[operands[0]], self.main_memory[operands[1]])
-        else: #assume it is immediate.
-            self.r[operands[0]]=operands[1]
-    
     def STR(self,operands): #(d,memory_ref)
         self.memory.set(operands[1],self.r[operands[0]])
     
     def ADD(self,operands): #(d,n,operand2, !!mode!!) mode checks whether <operand2> is a register
-        if operands[3]!="register":
+        if operands[3]!="REGISTER":
             self.r[operands[0]]=self.r[operands[1]]+operands[2]
         else:
-            #print("REGGIE DEGGIE")    #(The program detects a register)
             self.r[operands[0]]=self.r[operands[1]]+self.r[operands[2]]
     def SUB(self,operands): #(d,n,operand2, !!mode!!) mode checks whether <operand2> is a register
-        if operands[3]!="register": 
+        if operands[3]!="REGISTER": 
             self.r[operands[0]]=self.r[operands[1]]-operands[2]
         else:
             self.r[operands[0]]=self.r[operands[1]]-self.r[operands[2]]
 
     def MOV(self,operands): #(d,operand2)
-        if operands[2]!="register":
+        if operands[2]!="REGISTER":
             self.r[operands[0]]=operands[1]
         else:
             self.r[operands[0]]=self.r[operands[1]]
 
     def CMP(self,operands): #(n,operand2) NEED TO FIX THIS
         self.cmp_output=""
-        print(operands)
-        if self.r[operands[0]]>operands[1]:
-            self.cmp_output+=("GT NE ")
-        elif self.r[operands[0]]<operands[1]:
-            self.cmp_output+=("LT NE ")
-        elif self.r[operands[0]]==operands[1]:
-            self.cmp_output+=("EQ ")
-        #print(self.cmp_output)
+        if self.debug_mode:
+            print(f"OPERANDS FOR CMP INSTRUCTION: {operands}")
+
+        if operands[2]=="REGISTER" and operands[3]=="REGISTER": #if they are both registers
+            if self.r[operands[0]]>self.r[operands[1]]:
+                self.cmp_output+="GT NE "
+            elif self.r[operands[0]]<self.r[operands[1]]:
+                self.cmp_output+="LT NE "
+            elif self.r[operands[0]]==self.r[operands[1]]:
+                self.cmp_output+="EQ "
+        elif operands[2]=="REGISTER" and operands[3]=="IMMEDIATE": #use value2 immediately, no fetch from memory
+            if self.r[operands[0]]>operands[1]:
+                self.cmp_output+="GT NE "
+            elif self.r[operands[0]]<operands[1]:
+                self.cmp_output+="LT NE "
+            elif self.r[operands[0]]==operands[1]:
+                self.cmp_output+="EQ "
+        elif operands[2]=="REGISTER" and operands[3]=="DIRECT": #value2 is a pointer to memory
+            if self.memory.fetch(operands[1])[0]!="DATA":
+                print(f"FATAL ERROR: DATA AT LOCATION {operands[1]} IS EITHER AN INSTRUCTION OR NOT INITIALISED.")
+                self.isRunning=False
+                return 0 #exit program
+            if self.r[operands[0]]>self.memory.fetch(operands[1])[1]:
+                self.cmp_output+="GT NE "
+            elif self.r[operands[0]]<self.memory.fetch(operands[1])[1]:
+                self.cmp_output+="LT NE "
+            elif self.r[operands[0]]==self.memory.fetch(operands[1])[1]:
+                self.cmp_output+="EQ "
+        elif operands[2]=="DIRECT" and operands[3]=="REGISTER": #value1 is a pointer to memory
+            if self.memory.fetch(operands[0])[0]!="DATA":
+                print(f"FATAL ERROR: DATA AT LOCATION {operands[0]} IS EITHER AN INSTRUCTION OR NOT INITIALISED.")
+                self.isRunning=False
+                return 0 #exit program
+            if self.memory.fetch(operands[0])[1]>self.r[operands[1]]:
+                self.cmp_output+="GT NE "
+            elif self.memory.fetch(operands[0])[1]<self.r[operands[1]]:
+                self.cmp_output+="LT NE "
+            elif self.memory.fetch(operands[0])[1]==self.r[operands[1]]:
+                self.cmp_output+="EQ "
+        
+
+
+        if self.debug_mode:    
+            print(f"THE COMPARISON FOUND THESE CONDITIONS: {self.cmp_output}") #show result of comparison
 
     def B(self,operands): #(label,condition)
-        #print(operands[1]) show condition
+        #print(f"OPERANDS FOR BRANCH INSTRUCTION: {operands}") #show all operands [Location,Condition]
         if operands[1]=="NO CONDITION":
             self.PC=operands[0]
         else:
             #print(self.cmp_output) #check CMP instruction working
             if operands[1] in self.cmp_output: #if condition matches
                 self.PC=operands[0] #move PC to new location
-                print(operands[1])
-                print(self.cmp_output)
-                print(operands[1] in self.cmp_output)
+                #print(operands[1])
+                #print(self.cmp_output)
+                #print(operands[1] in self.cmp_output)
             else:
                 #print("No dice") #(condition failed)
                 pass
@@ -166,7 +174,7 @@ class Program:
             self.isRunning=False
             return 0
         self.command=self.memory.fetch(self.PC)
-        #print(self.command,self.PC)
+
         self.PC+=1
         if self.command=="NULL":
             print(f"FATAL ERROR. NO DATA FOUND AT ADDRESS {self.PC}. Perhaps you missed a HALT instruction?")
@@ -178,9 +186,11 @@ class Program:
             return 0
         elif self.command[0]=="DATA":
             print(f"FATAL ERROR. PC ENCOUNTERED A NON INSTRUCTION AND HAS QUIT.")
+            print(self.command,self.PC)
             self.isRunning=False
             return 0
         else: #assume no error
+            #print(self.PC) #show location of PC
             self.commands[self.command[1][0]](self.command[1][1])
 
     def run(self):
@@ -189,7 +199,7 @@ class Program:
 
 main_program=Program()
 program_as_an_array=program_parser.getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()
-#print(program_as_an_array)
+#print(program_as_an_array) #output program as it has been parsed
 i=0
 for instruction in program_as_an_array:
     if instruction[0:6]!="ERROR":

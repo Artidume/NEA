@@ -1,4 +1,4 @@
-LDR 2,#20
+LDR 2,#40
 LDR 3,#30
 CMP r2,r3
 BGT 11

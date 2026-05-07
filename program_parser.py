@@ -1,4 +1,4 @@
-#NOTE: I am using ".aqasm" as my file extension. Only because its fun. is a portmanteau of aqa and asm.
+#NOTE: I am using ".aqasm" as my file extension. Only because its fun. it is a portmanteau of aqa and asm.
 def parse(line):
     if line=="":
         #print(line,"EMPTY")
@@ -17,35 +17,31 @@ def parse(line):
             stage_2_output.append(opcode[0])
         operands=splitted[1] #need to split from str to list
         
-        #print("CHEW",operands)
+        #print(opcode) #show opcode in terminal
         operands=operands.strip().split(",") #separates using ", ". now each operand is distinct.
         
         for i in range(len(operands)):
             operands[i]=operands[i].strip() #remove whitespace from either side of operand (" r1 " -> "r1")
             #print(operands[i])
         decoded_operands=[]
+        address_modes=[] #an array of the address modes of each operand, which will be appended at the end of the instruction
         for operand in operands:
             #print(operand) #show current operand
-
-            if operand[0]=="#": #using immediate addressing (value given, not in memory)
-                address_mode="IMMEDIATE"
-            elif operand[0]=="r" or operand[0]=="R": #check for lowercase and uppercase
-                address_mode="register"
-            else: #assume direct (value taken from memory address pointed to with operand)
-                address_mode="DIRECT"
-
-            #print(address_mode)
-            if address_mode=="register":
-                decoded_operands.append(int(operand[1::])) #skips first character of operand, to get only the number
-                #print(decoded_operands)
-            elif operand[0]=="#":
-                decoded_operands.append(int(operand[1::])) #skips first character of operand, to get only the number
-            else: #assumer int with no gubbins
+            if operand[0]=="#": #using immediate addressing (immediate uses the value immediately)
+                address_modes.append("IMMEDIATE")  #add type of operand
+                decoded_operands.append(int(operand[1::])) #add operand
+            elif operand[0]=="r" or operand[0]=="R": #operand is a register
+                address_modes.append("REGISTER") #add type of operand
+                decoded_operands.append(int(operand[1::])) #add operand
+            else: #if neither of these, assume direct addressing (pointing to in memory)
+                address_modes.append("DIRECT")
                 decoded_operands.append(int(operand))
-        
+            
+            
+
         if opcode[0]!="B":
-            #print(address_mode)
-            decoded_operands.append(address_mode) #done at the end to match with main.py   
+            for optype in address_modes: #optype means the type of the operand. not standard 
+                decoded_operands.append(optype)
         
         if opcode[0]=="B":
             if len(opcode)==1: #if its just "B", no condition
@@ -86,3 +82,4 @@ def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryo
 
 if __name__ =="__main__":
     print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()) #test
+    #getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()
