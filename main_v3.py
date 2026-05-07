@@ -9,10 +9,10 @@ import program_parser
     - Increment this for every hour wasted not writing anything >> 1   
 '''
 class Memory:
-    def __init__(self,max_size=16384):
+    def __init__(self,max_size=256):
         self.memoryArray=[]
         for i in range(0,max_size):
-            self.memoryArray.append("NULL")
+            self.memoryArray.append(["NULL"])
         self.length=max_size
     def getLength(self):
         return self.length
@@ -21,6 +21,14 @@ class Memory:
         #print(self.memoryArray[location]) check data has been set correctly. Remember format is [TYPE,[Opcode,[operands]]]
     def fetch(self,location):
         return self.memoryArray[location]
+    def fetch_data(self,location,data_location=0):
+        if self.memoryArray[location][0]=="INSTRUCITON":
+            return self.memoryArray[location][1][1][data_location]
+        elif self.memoryArray[location][0]=="DATA":
+            #print(self.memoryArray[location][1]) #not needed anymore. no way schmozé
+            return self.memoryArray[location][1]
+        elif self.memoryArray[location][0]=="NULL":
+            return "Not Initialised"
 #Program Composed of ("has-a") Memory
 class Program:
     def __init__(self,debug_mode=False):
@@ -28,7 +36,7 @@ class Program:
         self.memory = Memory()
         self.isRunning=True
         self.PC=0
-        self.r=[0,0,0,0,0,0,0,0,0,0,0,0]
+        self.r=[0,0,0,0,0,0,0,0,0,0,0,0,0]
         self.cmp_output=""
         self.commands={
             "LDR":self.LDR,
@@ -57,12 +65,20 @@ class Program:
                 self.isRunning=False #halt program
                 return 0 #exit instruction
             if self.debug_mode:
-                print(f"DATA FOUND AT LOCATION {operands[1]}: {self.memory.fetch(operands[1])}") #show what is present at memory location
-            self.r[operands[0]]=self.memory.fetch(operands[1])
-        else: #assume it is immediate.
+                print(f"DATA FOUND AT LOCATION {operands[1]}: {self.memory.fetch_data(operands[1])}") #show what is present at memory location
+            self.r[operands[0]]=self.memory.fetch_data(operands[1])
+        elif operands[3]=="IMMEDIATE":
             self.r[operands[0]]=operands[1]
+            if self.debug_mode:
+                #print(self.r[operands[0]])
+                pass
+
     def STR(self,operands): #(d,memory_ref)
-        self.memory.set(operands[1],self.r[operands[0]])
+        if self.debug_mode:
+            print(f"OPERANDS FOR STR INSTRUCTION: {operands}")
+        if operands[0]>12:
+            print(f"FATAL ERROR. r{operands[0]} DOES NOT EXIST. THE REGISTERS ARE NUMBERED 0-12")
+        self.memory.set(operands[1],["DATA",self.r[operands[0]]])
     
     def ADD(self,operands): #(d,n,operand2, !!mode!!) mode checks whether <operand2> is a register
         if operands[3]!="REGISTER":
@@ -82,47 +98,48 @@ class Program:
             self.r[operands[0]]=self.r[operands[1]]
 
     def CMP(self,operands): #(n,operand2) NEED TO FIX THIS
+        if self.cmp_output != "":
+            print("ERROR: Comparison previously performed, but not used. The program will ignore the old comparison. Are you missing a branch instruction?")
         self.cmp_output=""
         if self.debug_mode:
             print(f"OPERANDS FOR CMP INSTRUCTION: {operands}")
 
-        if operands[2]=="REGISTER" and operands[3]=="REGISTER": #if they are both registers
-            if self.r[operands[0]]>self.r[operands[1]]:
-                self.cmp_output+="GT NE "
-            elif self.r[operands[0]]<self.r[operands[1]]:
-                self.cmp_output+="LT NE "
-            elif self.r[operands[0]]==self.r[operands[1]]:
-                self.cmp_output+="EQ "
-        elif operands[2]=="REGISTER" and operands[3]=="IMMEDIATE": #use value2 immediately, no fetch from memory
-            if self.r[operands[0]]>operands[1]:
-                self.cmp_output+="GT NE "
-            elif self.r[operands[0]]<operands[1]:
-                self.cmp_output+="LT NE "
-            elif self.r[operands[0]]==operands[1]:
-                self.cmp_output+="EQ "
-        elif operands[2]=="REGISTER" and operands[3]=="DIRECT": #value2 is a pointer to memory
-            if self.memory.fetch(operands[1])[0]!="DATA":
-                print(f"FATAL ERROR: DATA AT LOCATION {operands[1]} IS EITHER AN INSTRUCTION OR NOT INITIALISED.")
-                self.isRunning=False
-                return 0 #exit program
-            if self.r[operands[0]]>self.memory.fetch(operands[1])[1]:
-                self.cmp_output+="GT NE "
-            elif self.r[operands[0]]<self.memory.fetch(operands[1])[1]:
-                self.cmp_output+="LT NE "
-            elif self.r[operands[0]]==self.memory.fetch(operands[1])[1]:
-                self.cmp_output+="EQ "
-        elif operands[2]=="DIRECT" and operands[3]=="REGISTER": #value1 is a pointer to memory
-            if self.memory.fetch(operands[0])[0]!="DATA":
-                print(f"FATAL ERROR: DATA AT LOCATION {operands[0]} IS EITHER AN INSTRUCTION OR NOT INITIALISED.")
-                self.isRunning=False
-                return 0 #exit program
-            if self.memory.fetch(operands[0])[1]>self.r[operands[1]]:
-                self.cmp_output+="GT NE "
-            elif self.memory.fetch(operands[0])[1]<self.r[operands[1]]:
-                self.cmp_output+="LT NE "
-            elif self.memory.fetch(operands[0])[1]==self.r[operands[1]]:
-                self.cmp_output+="EQ "
+        self.value1=None
+        if operands[2]=="REGISTER":
+            self.value1=self.r[operands[0]]
+        elif operands[2]=="DIRECT":
+            self.value1=self.memory.fetch_data(operands[0])
+        elif operands[2]=="IMMEDIATE":
+            self.value1=operands[0]
+        if self.value1==None:
+            print(f"FATAL ERROR: OPERAND 1 FOR CMP COMMAND HAS NOT BEEN PROPERLY USED. VALUE: {operands[0]}")
+            self.isRunning=False
+            return 0 
+        self.value2=None
+        if operands[3]=="REGISTER":
+            self.value2=self.r[operands[1]]
+        elif operands[3]=="DIRECT":
+            self.value2=self.memory.fetch_data(operands[1])
+        elif operands[3]=="IMMEDIATE":
+            self.value2=operands[1]
+        if self.value2==None:
+            print(f"FATAL ERROR: OPERAND 2 FOR CMP COMMAND HAS NOT BEEN PROPERLY USED. VALUE: {operands[1]}")
+            self.isRunning=False
+            return 0
+        if self.debug_mode:
+            print(f"VALUES TO BE COMPARED:\n 1: {self.value1}, 2: {self.value2}")
+
+        #perform comparisons
+        if self.value1>self.value2:
+            self.cmp_output+="GT NE "
+        elif self.value1<self.value2:
+            self.cmp_output+="LT NE "
+        elif self.value1==self.value2:
+            self.cmp_output+="EQ "
+
         
+        
+
 
 
         if self.debug_mode:    
@@ -136,6 +153,7 @@ class Program:
             #print(self.cmp_output) #check CMP instruction working
             if operands[1] in self.cmp_output: #if condition matches
                 self.PC=operands[0] #move PC to new location
+                self.cmp_output=None #reset comparison flags
                 #print(operands[1])
                 #print(self.cmp_output)
                 #print(operands[1] in self.cmp_output)
@@ -166,6 +184,8 @@ class Program:
     def HALT(self,operands):
         self.isRunning=False
     def OUTPUT(self,operands):
+        if self.debug_mode:
+            print(f"OPERANDS FOR OUTPUT INSTRUCTION: {operands}")
         print(self.r[operands[0]])
     
     def fetch_execute_cycle(self): #runs FE Cycle once.
@@ -197,7 +217,7 @@ class Program:
         while self.isRunning:
             self.fetch_execute_cycle()
 
-main_program=Program()
+main_program=Program(True) #a True value being parsed means debug mode is active
 program_as_an_array=program_parser.getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()
 #print(program_as_an_array) #output program as it has been parsed
 i=0
@@ -206,4 +226,5 @@ for instruction in program_as_an_array:
         main_program.memory.set(i,instruction)
     i+=1
     #print(instruction)
+#print(main_program.memory.memoryArray)
 main_program.run()
