@@ -11,7 +11,7 @@ def parse(line):
         opcode=splitted[0]
         if opcode=="HALT":
             return ["INSTRUCTION",["HALT",[]]] #exit parser. empty array used as empty "operands"
-        if "B" not in opcode:
+        if opcode[0]!="B":
             stage_2_output.append(opcode) #write the opcode to the line
         else:
             stage_2_output.append(opcode[0])

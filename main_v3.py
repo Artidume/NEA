@@ -56,6 +56,7 @@ class Program:
             "OUTPUT":self.OUTPUT, 
             "HALT":self.HALT,
         }
+        self.labels={}
     def LDR(self,operands): #(d,memory_ref,!!address_type1,address_type2!!) NOTE: an extra paramter is passed to say the address type. ignore address_type1
         if self.debug_mode:
             print(f"OPERANDS FOR LDR INSTRUCTION: {operands}") #show operands
@@ -222,9 +223,10 @@ program_as_an_array=program_parser.getprogramfromfileusingcustomfileextensionbec
 #print(program_as_an_array) #output program as it has been parsed
 i=0
 for instruction in program_as_an_array:
-    if instruction[0:6]!="ERROR":
+    if instruction[0:6]!="ERROR" and instruction[0:5]!="LABEL":
         main_program.memory.set(i,instruction)
     i+=1
+    #if instruction[0:5]=="LABEL":
     #print(instruction)
 #print(main_program.memory.memoryArray)
 main_program.run()
