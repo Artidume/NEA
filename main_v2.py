@@ -6,7 +6,15 @@ import program_parser
     - This may change in the future, and if so, DELETE THIS MESSAGE.
     - Increment this for every hour wasted not writing anything >> 1   
 '''
-
+class Memory:
+    def __init__(self):
+        self.memoryArray=[]
+    def init_memory(self,max_size=256):
+        for i in range(0,max_size):
+            self.memoryArray.append()
+    def set_memory(self,location,data,type):
+        self.memoryArray[location]=[data,type]
+#Program inherits Memory
 class Program:
     def __init__(self,max_size=256): #"max_size=256" defines the default max space to be 256 commands. 256 is not signficant for the code, but it's thematically very cool.
         self.main_memory=[]

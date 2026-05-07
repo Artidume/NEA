@@ -1,9 +1,13 @@
-LDR 1, #2
-OUTPUT r1
-LDR r4, #4
-STR r4, 20
-LDR r2, 20
-OUTPUT r2
-ADD r2, r2, r1
+LDR 2,#20
+LDR 3,#30
+CMP r2,r3
+BGT 11
+OUTPUT r3
+HALT
+
+
+
+
+
 OUTPUT r2
 HALT

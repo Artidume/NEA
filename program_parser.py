@@ -5,16 +5,16 @@ def parse(line):
         return None
     try:
         #print(line)
-        output=[]
+        stage_2_output=[]
         line=line.replace("\n"," ") #remove trailing line break
         splitted=line.split(" ",1) #splits into opcode and operand in the form ["opcode","operands"] 
         opcode=splitted[0]
         if opcode=="HALT":
-            return ["HALT",[]] #exit parser. empty array used as empty "operands"
+            return ["INSTRUCTION",["HALT",[]]] #exit parser. empty array used as empty "operands"
         if "B" not in opcode:
-            output.append(opcode) #write the opcode to the line
+            stage_2_output.append(opcode) #write the opcode to the line
         else:
-            output.append(opcode[0])
+            stage_2_output.append(opcode[0])
         operands=splitted[1] #need to split from str to list
         
         #print("CHEW",operands)
@@ -57,15 +57,17 @@ def parse(line):
                     decoded_operands.append(condition)
                 else:
                     print("FATAL ERROR: Invalid condition. The conditions are:\nEQ - Equal to \nGT - Greater Than\nLT - Less Than\nNE - Not Equal To")
-                    return False
+                    return ["ERROR","ERROR: Branch command"]
 
-        output.append(decoded_operands)
-        return output
+        stage_2_output.append(decoded_operands)
+        return ["INSTRUCTION",stage_2_output]
         #print(output)
     except:
+        if len(line.strip())==0:
+            return ["DATA",0]
         if len(splitted)==0:
             print(f"FATAL ERROR: Command written incorrectly. Check for whitespace characters like a space.")
-        return "ERROR: Parsing"
+        return ["ERROR","ERROR: Parsing"]
 
 def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme():
     program=[]
