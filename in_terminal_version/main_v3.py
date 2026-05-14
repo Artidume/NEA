@@ -1,4 +1,4 @@
-import program_parser
+import program_parser_terminal
 
 #TODO: FINISH COMMANDS, create debug mode, create assembler, cry
 #TODO: FIX CMP COMMAND
@@ -203,9 +203,8 @@ class Program:
             self.isRunning=False
             return 0
         self.command=self.memory.fetch(self.PC)
-
         self.PC+=1
-        if self.command=="NULL":
+        if self.command==["NULL"]:
             print(f"FATAL ERROR. NO DATA FOUND AT ADDRESS {self.PC}. Perhaps you missed a HALT instruction?")
             self.isRunning=False
             return 0
@@ -234,7 +233,7 @@ else:
     debug_check=False
 
 main_program=Program(debug_check) #a True value being parsed means debug mode is active
-program=program_parser.getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()
+program=program_parser_terminal.getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()
 program_as_an_array=program
 i=0
 for instruction in program_as_an_array:

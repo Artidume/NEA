@@ -109,7 +109,7 @@ def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryo
     program=[]
     global labels
     labels={}
-    with open("program.aqasm","r") as f:
+    with open("in_terminal_version\program_terminal.aqasm","r") as f:
         line="placeholder that doesn't matter"
         line_number=0
         while line != (None,False) and line!="ERROR":
