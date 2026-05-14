@@ -1,5 +1,9 @@
-LDR 12, #20
-STR 12,40
-LDR 12,40
-OUTPUT r12
+MOV r1,#3
+MOV r2,#1
+MOV r3,#0
+Loop:
+CMP r1, r2
+SUB r1,r1,#1
+OUTPUT r1
+BGT Loop
 HALT

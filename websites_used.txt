@@ -1,0 +1,4 @@
+These websites I have used to aid my programming:
+
+https://www.geeksforgeeks.org/ used for understanding of string manipulation
+https://www.w3schools.com/python/python_dictionaries.asp   used to help with python_dictionaries

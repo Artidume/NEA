@@ -56,7 +56,6 @@ class Program:
             "OUTPUT":self.OUTPUT, 
             "HALT":self.HALT,
         }
-        self.labels={}
     def LDR(self,operands): #(d,memory_ref,!!address_type1,address_type2!!) NOTE: an extra paramter is passed to say the address type. ignore address_type1
         if self.debug_mode:
             print(f"OPERANDS FOR LDR INSTRUCTION: {operands}") #show operands
@@ -68,11 +67,7 @@ class Program:
             if self.debug_mode:
                 print(f"DATA FOUND AT LOCATION {operands[1]}: {self.memory.fetch_data(operands[1])}") #show what is present at memory location
             self.r[operands[0]]=self.memory.fetch_data(operands[1])
-        elif operands[3]=="IMMEDIATE":
-            self.r[operands[0]]=operands[1]
-            if self.debug_mode:
-                #print(self.r[operands[0]])
-                pass
+        
 
     def STR(self,operands): #(d,memory_ref)
         if self.debug_mode:
@@ -87,18 +82,31 @@ class Program:
         else:
             self.r[operands[0]]=self.r[operands[1]]+self.r[operands[2]]
     def SUB(self,operands): #(d,n,operand2, !!mode!!) mode checks whether <operand2> is a register
-        if operands[3]!="REGISTER": 
+        if self.debug_mode:
+            print(f"OPERANDS FOR SUB INSTRUCTION: {operands}")
+        if operands[5]!="REGISTER": 
             self.r[operands[0]]=self.r[operands[1]]-operands[2]
         else:
             self.r[operands[0]]=self.r[operands[1]]-self.r[operands[2]]
+        if self.debug_mode:
+            print(f"RESULT: r{operands[0]} = {self.r[operands[0]]}")
 
     def MOV(self,operands): #(d,operand2)
-        if operands[2]!="REGISTER":
+        if self.debug_mode:
+            print(f"OPERANDS FOR MOV INSTRUCTION: {operands}")
+        if operands[3]=="IMMEDIATE":
             self.r[operands[0]]=operands[1]
-        else:
+            if self.debug_mode:
+                #print(self.r[operands[0]])
+                pass
+        elif operands[3]=="DIRECT":
+            self.r[operands[0]]=self.memory.fetch_data(operands[1])
+        elif operands[3]=="REGISTER":
             self.r[operands[0]]=self.r[operands[1]]
-
-    def CMP(self,operands): #(n,operand2) NEED TO FIX THIS
+        if self.debug_mode:
+            print(f"RESULT: r{operands[0]} = {self.r[operands[0]]}")
+        
+    def CMP(self,operands): #(n,operand2) 
         if self.cmp_output != "":
             print("ERROR: Comparison previously performed, but not used. The program will ignore the old comparison. Are you missing a branch instruction?")
         self.cmp_output=""
@@ -138,15 +146,10 @@ class Program:
         elif self.value1==self.value2:
             self.cmp_output+="EQ "
 
-        
-        
-
-
-
         if self.debug_mode:    
             print(f"THE COMPARISON FOUND THESE CONDITIONS: {self.cmp_output}") #show result of comparison
 
-    def B(self,operands): #(label,condition)
+    def B(self,operands): #(location,condition,) NOTE: labels are replaced with their corresponding memory locations in memory when parsed.
         #print(f"OPERANDS FOR BRANCH INSTRUCTION: {operands}") #show all operands [Location,Condition]
         if operands[1]=="NO CONDITION":
             self.PC=operands[0]
@@ -154,7 +157,7 @@ class Program:
             #print(self.cmp_output) #check CMP instruction working
             if operands[1] in self.cmp_output: #if condition matches
                 self.PC=operands[0] #move PC to new location
-                self.cmp_output=None #reset comparison flags
+                self.cmp_output="" #reset comparison flags
                 #print(operands[1])
                 #print(self.cmp_output)
                 #print(operands[1] in self.cmp_output)
@@ -187,7 +190,12 @@ class Program:
     def OUTPUT(self,operands):
         if self.debug_mode:
             print(f"OPERANDS FOR OUTPUT INSTRUCTION: {operands}")
-        print(self.r[operands[0]])
+        if operands[1]=="REGISTER":
+            print(self.r[operands[0]])
+        elif operands[1]=="IMMEDIATE":
+            print(operands[0])
+        elif operands[1]=="DIRECT":
+            print(self.memory.fetch_data(operands[0]))
     
     def fetch_execute_cycle(self): #runs FE Cycle once.
         if self.PC>self.memory.getLength():
@@ -212,18 +220,25 @@ class Program:
             return 0
         else: #assume no error
             #print(self.PC) #show location of PC
+    
             self.commands[self.command[1][0]](self.command[1][1])
 
     def run(self):
         while self.isRunning:
             self.fetch_execute_cycle()
 
-main_program=Program(True) #a True value being parsed means debug mode is active
-program_as_an_array=program_parser.getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()
-#print(program_as_an_array) #output program as it has been parsed
+debug_check = input("Input any character to enable debug mode")
+if debug_check!="":
+    debug_check=True
+else:
+    debug_check=False
+
+main_program=Program(debug_check) #a True value being parsed means debug mode is active
+program=program_parser.getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()
+program_as_an_array=program
 i=0
 for instruction in program_as_an_array:
-    if instruction[0:6]!="ERROR" and instruction[0:5]!="LABEL":
+    if instruction[0:6]!="ERROR":
         main_program.memory.set(i,instruction)
     i+=1
     #if instruction[0:5]=="LABEL":
