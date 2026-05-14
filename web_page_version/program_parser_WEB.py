@@ -68,7 +68,7 @@ def parse(line,line_number):
                 address_modes.append("DIRECT")
                 decoded_operands.append(int(operand))
             elif operand[0]=="#": #using immediate addressing (immediate uses the value immediately)
-                print("everrybody do the wenis! the wenis is a dance :) everybody is a genius! who knows it in advance ;)")
+                #print("everrybody do the wenis! the wenis is a dance :) everybody is a genius! who knows it in advance ;)")
                 address_modes.append("IMMEDIATE")  #add type of operand
                 decoded_operands.append(int(operand[1::])) #add operand
             elif (operand[0]=="r" or operand[0]=="R") and theRestIsNumber: #operand is a register
