@@ -105,23 +105,46 @@ def parse(line,line_number):
             print(f"FATAL ERROR: Command written incorrectly. Check for whitespace characters like a space.")
         return ["ERROR","ERROR: Parsing"],False
 
-def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme():
+def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme(file):
     program=[]
     global labels
     labels={}
-    with open("program.aqasm","r") as f:
+    if file!=False:
+        f=file.split("\n")
         line="placeholder that doesn't matter"
         line_number=0
+        i=0
         while line != (None,False) and line!="ERROR":
-            readline=f.readline()
-            line=parse(readline,line_number)
-            #print(line)
-            if line != (None,False) and line!="ERROR" and line[1]==False:
-                program.append(line[0])
-            elif line != (None,False): #assume it is a label
-                #print(line[1])
-                labels.update({line[0]:line_number})
-            line_number+=1
+            try:
+                readline=f[i]
+                i+=1
+            except:
+                readline=None
+            if readline==None:
+                line=(None,False)
+            else:
+                line=parse(readline,line_number)
+                #print(line)
+                if line != (None,False) and line!="ERROR" and line[1]==False:
+                    program.append(line[0])
+                elif line != (None,False): #assume it is a label
+                    #print(line[1])
+                    labels.update({line[0]:line_number})
+                line_number+=1
+    else:
+        with open("program.aqasm","r") as f:
+            line="placeholder that doesn't matter"
+            line_number=0
+            while line != (None,False) and line!="ERROR":
+                readline=f.readline()
+                line=parse(readline,line_number)
+                #print(line)
+                if line != (None,False) and line!="ERROR" and line[1]==False:
+                    program.append(line[0])
+                elif line != (None,False): #assume it is a label
+                    #print(line[1])
+                    labels.update({line[0]:line_number})
+                line_number+=1
     if line!="ERROR":
         return program
     else:
@@ -129,5 +152,5 @@ def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryo
 
 
 if __name__ =="__main__":
-    print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()) #test
+    print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme("OUTPUT r2\n HALT\n")) #test
     #getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()
