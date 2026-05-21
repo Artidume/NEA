@@ -237,6 +237,7 @@ def run_program(debug_flag,file):
     global output
     main_program=Program(debug_flag) #a True value being parsed means debug mode is active
     program=program_parser_WEB.getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme(file)
+    pseudo_print(program)
     program_as_an_array=program
     i=0
     for instruction in program_as_an_array:

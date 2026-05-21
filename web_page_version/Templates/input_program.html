@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<head>
+    <style>
+        body {
+            background-color:aquamarine;
+        }
+        input {
+            border: 10px red;
+        }
+        #assembly-box {
+            position:absolute 2
+        }
+    </style>
+</head>
+<body>
+    <form action="/read-form" method="post">
+        <label for="program">Input Program</label>
+        <textarea id="program" name="program" required></textarea>
+        <input type="submit">
+    </form>
+    <div id="assembly-box">
+        <p>
+            <img src="/static/instructions.webp" alt="The AQA instruction set.">
+        </p>
+    </div>
+</body>

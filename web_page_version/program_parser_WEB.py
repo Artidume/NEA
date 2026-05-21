@@ -1,6 +1,7 @@
 #NOTE: I am using ".aqasm" as my file extension. Only because its fun. it is a portmanteau of aqa and asm.
 def parse(line,line_number):
     global labels
+    #print(labels)
     if line=="":
         #print(line,"EMPTY")
         return None,False
@@ -10,10 +11,7 @@ def parse(line,line_number):
         label=None
         line=line.replace("\n"," ").strip() #remove trailing line break
         #print(line) show line after initial string formatting
-        if line[-1:]==":": #assume it is a label. -1: means get the last character of the line
-            #print(line[:len(line)-1])
-            label = line[:len(line)-1] #remove last character of line
-            return label,True #True works to check if this is a label. No other output should be True
+        
         splitted=line.split(" ",1) #splits into opcode and operand in the form ["opcode","operands"] 
         opcode=splitted[0]
         
@@ -39,7 +37,7 @@ def parse(line,line_number):
 
                 else:
                     print("FATAL ERROR: Invalid condition. The conditions are:\nEQ - Equal to \nGT - Greater Than\nLT - Less Than\nNE - Not Equal To")
-                    return ["ERROR","ERROR: Branch command"],False
+                    return "ERROR: Branch command"
             return ["INSTRUCTION",["B",decoded_operands]], False
 
         
@@ -57,8 +55,8 @@ def parse(line,line_number):
         for operand in operands:
             #print(operand) #show current operand
             try: #this handles whether we are using r2 or rLABELNAME. hacky solutions ftw
-                int(operand[1:])
-                if operand[0] in ["1","2","3","4","5","6","7","8","9","0"]:
+                temp=int(operand[1:])
+                if temp in [0,1,2,3,4,5,6,7,8,9,10,11,12,]:
                     operand=int(operand)
                 #print(operand,type(operand))
                 theRestIsNumber=True
@@ -68,7 +66,6 @@ def parse(line,line_number):
                 address_modes.append("DIRECT")
                 decoded_operands.append(int(operand))
             elif operand[0]=="#": #using immediate addressing (immediate uses the value immediately)
-                #print("everrybody do the wenis! the wenis is a dance :) everybody is a genius! who knows it in advance ;)")
                 address_modes.append("IMMEDIATE")  #add type of operand
                 decoded_operands.append(int(operand[1::])) #add operand
             elif (operand[0]=="r" or operand[0]=="R") and theRestIsNumber: #operand is a register
@@ -83,6 +80,7 @@ def parse(line,line_number):
                 decoded_operands.append(optype)
         
         if opcode[0]=="B":
+            print(line,":",operand,":",opcode)
             if len(opcode)==1: #if its just "B", no condition
                 decoded_operands[1]="NO CONDITION"
             else: #implies condition exists
@@ -92,7 +90,7 @@ def parse(line,line_number):
                     decoded_operands.append(condition)
                 else:
                     print("FATAL ERROR: Invalid condition. The conditions are:\nEQ - Equal to \nGT - Greater Than\nLT - Less Than\nNE - Not Equal To")
-                    return ["ERROR","ERROR: Branch command"],False
+                    return "ERROR: Branch command"
 
         stage_2_output.append(decoded_operands)
         return ["INSTRUCTION",stage_2_output],False
@@ -103,7 +101,17 @@ def parse(line,line_number):
             return ["DATA",0],False
         if len(splitted)==0:
             print(f"FATAL ERROR: Command written incorrectly. Check for whitespace characters like a space.")
-        return ["ERROR","ERROR: Parsing"],False
+        return "ERROR: Parsing"
+
+def getLabels(label_f):
+    line_number=0
+    for label_line in label_f:
+        label_line=label_line.strip()
+        if label_line[-1:]==":": #assume it is a label. -1: means get the last character of the line
+            label = label_line[:len(label_line)-1] #remove last character of line
+            labels.update({label:line_number})
+        line_number+=1
+    return labels
 
 def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme(file):
     program=[]
@@ -111,8 +119,10 @@ def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryo
     labels={}
     if file!=False:
         f=file.split("\n")
-        line="placeholder that doesn't matter"
+        #print(f)
+        line="placeholder"
         line_number=0
+        labels=getLabels(f)
         i=0
         while line != (None,False) and line!="ERROR":
             try:
@@ -127,9 +137,6 @@ def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryo
                 #print(line)
                 if line != (None,False) and line!="ERROR" and line[1]==False:
                     program.append(line[0])
-                elif line != (None,False): #assume it is a label
-                    #print(line[1])
-                    labels.update({line[0]:line_number})
                 line_number+=1
     else:
         with open("program.aqasm","r") as f:
@@ -146,11 +153,11 @@ def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryo
                     labels.update({line[0]:line_number})
                 line_number+=1
     if line!="ERROR":
-        return program
+        return program,labels
     else:
         return "ERROR"
 
 
 if __name__ =="__main__":
-    print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme("OUTPUT r2\n HALT\n")) #test
+    print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme("OUTPUT #2\nB labelname \n HALT\n KKKK #2 \n labelname: \n OUTPUT labelname \n HALT\n")) #test
     #getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()
