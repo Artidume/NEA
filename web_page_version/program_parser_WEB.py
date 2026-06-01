@@ -6,7 +6,6 @@ def parse(line,line_number):
         #print(line,"EMPTY")
         return None,False
     try:
-        #print(line)
         stage_2_output=[]
         label=None
         line=line.replace("\n"," ").strip() #remove trailing line break
@@ -14,7 +13,11 @@ def parse(line,line_number):
         
         splitted=line.split(" ",1) #splits into opcode and operand in the form ["opcode","operands"] 
         opcode=splitted[0]
-        
+        print(opcode)
+        if opcode[::-1]==":":
+            print("awogueba!")
+
+
         if opcode=="HALT":
             return ["INSTRUCTION",["HALT",[]]],False #exit parser. empty array used as empty "operands"
         if opcode[0]!="B":
@@ -23,9 +26,12 @@ def parse(line,line_number):
             stage_2_output.append(opcode[0])   
         operands=splitted[1] #need to split from str to list   
         #THIS CHECKS FOR WHETHER IT IS BRANCHING TO A LABEL.
+
         if operands in labels and opcode[0]=="B": #if this is a branch instruction, and it is branching to a label,
+            print("branch insctructions",line)
             label = operands
             decoded_operands=[labels.get(label)] #replace label with its location in memory 
+            print(decoded_operands)
             if len(opcode)==1: #if its just "B", no condition
                 decoded_operands[1]="NO CONDITION"
 
@@ -96,7 +102,7 @@ def parse(line,line_number):
         return ["INSTRUCTION",stage_2_output],False
         #print(output)
     except:
-
+        #print(splitted)
         if len(line.strip())==0:
             return ["DATA",0],False
         if len(splitted)==0:
@@ -124,7 +130,7 @@ def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryo
         line_number=0
         labels=getLabels(f)
         i=0
-        while line != (None,False) and line!="ERROR":
+        while line != (None,False) and line[0:6]!="ERROR":
             try:
                 readline=f[i]
                 i+=1
@@ -159,5 +165,5 @@ def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryo
 
 
 if __name__ =="__main__":
-    print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme("OUTPUT #2\nB labelname \n HALT\n KKKK #2 \n labelname: \n OUTPUT labelname \n HALT\n")) #test
+    print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme("B labelname \n labelname: \n HALT")) #test <OUTPUT #2\nB labelname \n HALT\n jjjj \n labelname: \n OUTPUT labelname \n HALT\n>
     #getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()

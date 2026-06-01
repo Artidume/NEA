@@ -240,6 +240,7 @@ def run_program(debug_flag,file):
     pseudo_print(program)
     program_as_an_array=program
     i=0
+    print(program_as_an_array)
     for instruction in program_as_an_array:
         if instruction[0:6]!="ERROR":
             main_program.memory.set(i,instruction)
@@ -257,5 +258,5 @@ if __name__=="__main__":
         debug_flag=True
     else:
         debug_flag=False
-    
-    print(run_program(debug_flag,False))
+    file = "Labelname: \n OUTPUT #2 \n B Labelname \n"
+    print(run_program(debug_flag,file))
