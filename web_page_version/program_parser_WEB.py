@@ -1,4 +1,23 @@
 #NOTE: I am using ".aqasm" as my file extension. Only because its fun. it is a portmanteau of aqa and asm.
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+
 def parse(line,line_number):
     global labels
     #print(labels)
@@ -13,7 +32,7 @@ def parse(line,line_number):
         
         splitted=line.split(" ",1) #splits into opcode and operand in the form ["opcode","operands"] 
         opcode=splitted[0]
-        print(opcode)
+        #print(opcode)
         if opcode[::-1]==":":
             print("awogueba!")
 
@@ -28,10 +47,10 @@ def parse(line,line_number):
         #THIS CHECKS FOR WHETHER IT IS BRANCHING TO A LABEL.
 
         if operands in labels and opcode[0]=="B": #if this is a branch instruction, and it is branching to a label,
-            print("branch insctructions",line)
+            #print("branch insctructions",line)
             label = operands
             decoded_operands=[labels.get(label)] #replace label with its location in memory 
-            print(decoded_operands)
+            #print(decoded_operands)
             if len(opcode)==1: #if its just "B", no condition
                 decoded_operands[1]="NO CONDITION"
 
@@ -58,35 +77,37 @@ def parse(line,line_number):
             #print(operands[i])
         decoded_operands=[]
         address_modes=[] #an array of the address modes of each operand, which will be appended at the end of the instruction
+        print(operands)
         for operand in operands:
-            #print(operand) #show current operand
-            try: #this handles whether we are using r2 or rLABELNAME. hacky solutions ftw
-                temp=int(operand[1:])
-                if temp in [0,1,2,3,4,5,6,7,8,9,10,11,12,]:
-                    operand=int(operand)
-                #print(operand,type(operand))
-                theRestIsNumber=True
+            print(operand)
+            try: #checking if characters after 1st are integers (i.e r3, #25, etc)
+                if isinstance(int(operand[1:]),int): #hacky solution
+                    theRestIsNumber=True
             except:
                 theRestIsNumber=False
-            if isinstance(operand,int): #if it is only a number, it will have no starting "#","r", which would cause it to error. this fixes this problem.
-                address_modes.append("DIRECT")
-                decoded_operands.append(int(operand))
-            elif operand[0]=="#": #using immediate addressing (immediate uses the value immediately)
-                address_modes.append("IMMEDIATE")  #add type of operand
-                decoded_operands.append(int(operand[1::])) #add operand
-            elif (operand[0]=="r" or operand[0]=="R") and theRestIsNumber: #operand is a register
-                address_modes.append("REGISTER") #add type of operand
-                decoded_operands.append(int(operand[1::])) #add operand
-            else: #assume it is a label
-                address_modes.append("LABEL")
-                decoded_operands.append(operand) #append it as a string, since that will be what will be called
-
+            finally:
+                if isinstance(operand,int): #if it is only a number, it will have no starting "#","r", which would cause it to error. this fixes this problem.
+                    address_modes.append("DIRECT")
+                    decoded_operands.append(int(operand))
+                    print("direct")
+                elif operand[0]=="#": #using immediate addressing (immediate uses the value immediately)
+                    address_modes.append("IMMEDIATE")  #add type of operand
+                    decoded_operands.append(int(operand[1::])) #add operand
+                    print("immediate")
+                elif (operand[0]=="r" or operand[0]=="R") and theRestIsNumber: #operand is a register
+                    address_modes.append("REGISTER") #add type of operand
+                    decoded_operands.append(int(operand[1::])) #add operand
+                else: #assume it is a label
+                    address_modes.append("LABEL")
+                    print(f"The program thinks {operand} is a label. Silly computer!")
+                    decoded_operands.append(operand) #append it as a string, since that will be what will be called
+        print(decoded_operands)
         if opcode[0]!="B":
             for optype in address_modes: #optype means the type of the operand. not standard 
                 decoded_operands.append(optype)
         
         if opcode[0]=="B":
-            print(line,":",operand,":",opcode)
+            #print(line,":",operand,":",opcode)
             if len(opcode)==1: #if its just "B", no condition
                 decoded_operands[1]="NO CONDITION"
             else: #implies condition exists
@@ -103,6 +124,7 @@ def parse(line,line_number):
         #print(output)
     except:
         #print(splitted)
+        print(f"Es gibt ein Fehler: {operand}")
         if len(line.strip())==0:
             return ["DATA",0],False
         if len(splitted)==0:
@@ -123,7 +145,7 @@ def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryo
     program=[]
     global labels
     labels={}
-    if file!=False:
+    if file != False:
         f=file.split("\n")
         #print(f)
         line="placeholder"
@@ -165,5 +187,5 @@ def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryo
 
 
 if __name__ =="__main__":
-    print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme("B labelname \n labelname: \n HALT")) #test <OUTPUT #2\nB labelname \n HALT\n jjjj \n labelname: \n OUTPUT labelname \n HALT\n>
+    print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme("MOV r1,#2\nMOV r2,#4\nMOV r0,#6\n ADD r0,r1,r2\nOUTPUT r0\n HALT")) #test <OUTPUT #2\nB labelname \n HALT\n jjjj \n labelname: \n OUTPUT labelname \n HALT\n>
     #getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()

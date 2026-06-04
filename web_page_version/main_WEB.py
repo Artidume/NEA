@@ -1,7 +1,24 @@
 import program_parser_WEB
 global output
 output=""
-
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
 def pseudo_print(string): #highjacking the print statement to simply write to a larger output feels so funky
     global output
     if output!="":
@@ -37,7 +54,7 @@ class Memory:
             return "Not Initialised"
 #Program Composed of ("has-a") Memory
 class Program:
-    def __init__(self,debug_mode=False):
+    def __init__(self, labels, debug_mode=False):
         self.debug_mode=debug_mode #will show all "output" types, incl. PC
         self.memory = Memory()
         self.isRunning=True
@@ -62,19 +79,17 @@ class Program:
             "OUTPUT":self.OUTPUT, 
             "HALT":self.HALT,
         }
+        self.labels=labels
     def LDR(self,operands): #(d,memory_ref,!!address_type1,address_type2!!) NOTE: an extra paramter is passed to say the address type. ignore address_type1
         if self.debug_mode:
             pseudo_print(f"OPERANDS FOR LDR INSTRUCTION: {operands}") #show operands
-        if operands[3]=="DIRECT":#get value from address pointed to in memory
-            if operands[1]>self.memory.getLength()-1: #checking memory_ref does not exceed storage constraint
-                pseudo_print(f"FATAL ERROR: memory_ref ({operands[1]}) exceeds storage size ({self.memory.getLength()-1} data blocks).")
-                self.isRunning=False #halt program
-                return 0 #exit instruction
-            if self.debug_mode:
-                pseudo_print(f"DATA FOUND AT LOCATION {operands[1]}: {self.memory.fetch_data(operands[1])}") #show what is present at memory location
-            self.r[operands[0]]=self.memory.fetch_data(operands[1])
-        
-
+        if operands[3]=="DIRECT":
+            if operands[1]<len(self.memory)-1 and operands[0]<13: #if location does not exceed memory, and if the register is a valid register
+                self.r[operands[0]]=self.memory.fetch_data(operands[1])
+            elif operands[1]>len(self.memory)-1:
+                pseudo_print(f"FATAL ERROR AT LINE {self.PC}: MEMORY LOCATION {operands[1]} EXCEEDS THE BOUNDS OF ALLOCATED MEMORY.")
+        else:
+            pseudo_print(f"FATAL ERROR AT LINE {self.PC}. <memory_ref> CANNOT BE A REGISTER OR IMMEDIATE ")
     def STR(self,operands): #(d,memory_ref)
         if self.debug_mode:
             pseudo_print(f"OPERANDS FOR STR INSTRUCTION: {operands}")
@@ -82,11 +97,16 @@ class Program:
             pseudo_print(f"FATAL ERROR. r{operands[0]} DOES NOT EXIST. THE REGISTERS ARE NUMBERED 0-12")
         self.memory.set(operands[1],["DATA",self.r[operands[0]]])
     
-    def ADD(self,operands): #(d,n,operand2, !!mode!!) mode checks whether <operand2> is a register
-        if operands[3]!="REGISTER":
-            self.r[operands[0]]=self.r[operands[1]]+operands[2]
-        else:
-            self.r[operands[0]]=self.r[operands[1]]+self.r[operands[2]]
+    def ADD(self,operands): #(d,n,operand2, !!address_type1,address_type2,address_type3!!)
+        if self.debug_mode:
+            pseudo_print(f"OPERANDS FOR ADD INSTRUCTION {operands}")
+        self.temp_value=0
+        if operands[3]!="REGISTER": #if d is not a register
+            pseudo_print(f"FATAL ERROR AT LINE {self.PC}. YOU MUST BE STORING THE ADD RESULT IN A REGISTER.")
+        if operands[4]!="REGISTER": #if n is not a register
+            pseudo_print(f"FATAL ERROR AT LINE {self.PC}. Rn MUST BE A REGISTER.")
+        if operands[5]=="DIRECT":
+            self.temp_value=2134234#FINISH
     def SUB(self,operands): #(d,n,operand2, !!mode!!) mode checks whether <operand2> is a register
         if self.debug_mode:
             pseudo_print(f"OPERANDS FOR SUB INSTRUCTION: {operands}")
@@ -216,11 +236,11 @@ class Program:
             self.isRunning=False
             return 0
         elif self.command[0]=="ERROR":
-            print(f"PARSING ERROR OCCURED. CHECK YOUR CODE IS WRITTEN AND FORMATTED CORRECTLY.")
+            print(f"PARSING ERROR OCCURED. CHECK YOUR CODE IS WRITTEN AND FORMATTED CORRECTLY. LINE {self.PC}")
             self.isRunning=False
             return 0
         elif self.command[0]=="DATA":
-            print(f"FATAL ERROR. PC ENCOUNTERED A NON INSTRUCTION AND HAS QUIT.")
+            print(f"FATAL ERROR. PC ENCOUNTERED A NON INSTRUCTION AND HAS QUIT. LINE {self.PC}")
             print(self.command,self.PC)
             self.isRunning=False
             return 0
@@ -235,12 +255,13 @@ class Program:
 
 def run_program(debug_flag,file):
     global output
-    main_program=Program(debug_flag) #a True value being parsed means debug mode is active
-    program=program_parser_WEB.getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme(file)
-    pseudo_print(program)
+    temp=program_parser_WEB.getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme(file)
+    program=temp[0]
+    main_program=Program(temp[1],debug_flag) #a True value being parsed means debug mode is active
+    #pseudo_print(program)
     program_as_an_array=program
     i=0
-    print(program_as_an_array)
+    #print(program_as_an_array)
     for instruction in program_as_an_array:
         if instruction[0:6]!="ERROR":
             main_program.memory.set(i,instruction)
@@ -253,10 +274,12 @@ def run_program(debug_flag,file):
     return output
 
 if __name__=="__main__":
+    '''
     debug_flag = input("Input any character to enable debug mode")
     if debug_flag!="":
         debug_flag=True
     else:
         debug_flag=False
-    file = "Labelname: \n OUTPUT #2 \n B Labelname \n"
-    print(run_program(debug_flag,file))
+    file = "LDR r2,#3"
+    print(run_program(debug_flag,file))'''
+    print(run_program(True,"MOV r1,#2\nMOV r2,#4\nMOV r0,#6\n ADD r0,r1,r2\nOUTPUT r0\n HALT"))
