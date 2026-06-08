@@ -1,3 +1,1 @@
-Labelname:
-OUTPUT 1
-B Labelname
+LDR r2, #10

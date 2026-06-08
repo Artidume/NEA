@@ -187,5 +187,5 @@ def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryo
 
 
 if __name__ =="__main__":
-    print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme("MOV r1,#2\nMOV r2,#4\nMOV r0,#6\n ADD r0,r1,r2\nOUTPUT r0\n HALT")) #test <OUTPUT #2\nB labelname \n HALT\n jjjj \n labelname: \n OUTPUT labelname \n HALT\n>
+    print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme("LDR r2, #10")) #test <OUTPUT #2\nB labelname \n HALT\n jjjj \n labelname: \n OUTPUT labelname \n HALT\n>
     #getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()

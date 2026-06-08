@@ -129,5 +129,6 @@ def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryo
 
 
 if __name__ =="__main__":
-    print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()) #test
+    #print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()) #test
+    print(parse("LDR r2,#10",1))
     #getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme()
