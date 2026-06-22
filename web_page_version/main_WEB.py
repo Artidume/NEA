@@ -1,35 +1,40 @@
 import program_parser_WEB
 global output
 output=""
-#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
-#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
-#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
-#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
-#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
-#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
-#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
-#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
-#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
-#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
-#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
-#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
-#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
-#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
-#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
-#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
-#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
-#FINISH LINE 96, ALL INSTRUCTIONS NEED WORK!!!!!!
+global max_runtime #This will be the max number of lines that can be executed by a program. Change as desired. 
+max_runtime=10000
+
 def pseudo_print(string): #highjacking the print statement to simply write to a larger output feels so funky
     global output
     if output!="":
         output+="\n"
     output += (str(string))
 
-#TODO: Add debug mode to all instrucitons
+'''
+TODO:
+- MOV: re-read and ensure valid
+- CMP: re-read and ensure valid
+- B: re-read and ensure valid. Should be working.
+- AND: write
+- ORR: write
+- EOR: write
+- MVN: write
+- LSL: write
+- LSR: write
+
+- DEBUG MODE:
+. Go back over and ensure error message are understandable for the user.
+
+- CRASH HANDLER:
+. Have a fatal error ACTUALLY crash the program, and not continue runtime. should be simple.
+
+The other instructions seem to be working fine. The parser also functions as intended.
+
+'''
 '''NOTE:
     - Pivotted to Von Neumann architecture, worth it to closer mimic original design.
     - This may change in the future, and if so, DELETE THIS MESSAGE.
-    - Increment this for every hour wasted not writing anything >> 1   
+    - Increment this for every hour wasted not writing anything >> 2  
 '''
 class Memory:
     def __init__(self,max_size=256):
@@ -83,6 +88,10 @@ class Program:
     def LDR(self,operands): #(d,memory_ref,!!address_type1,address_type2!!) NOTE: an extra paramter is passed to say the address type. ignore address_type1
         if self.debug_mode:
             pseudo_print(f"OPERANDS FOR LDR INSTRUCTION: {operands}") #show operands
+        if operands[2]!="REGISTER":
+            pseudo_print(f"FATAL ERROR AT LINE {self.PC}. Rd MUST BE A REGISTER.")
+        elif operands[0]>12 and operands[2]=="REGISTER":
+            pseudo_print(f"FATAL ERROR AT LINE {self.PC}. Rd IS AN INVALID REGISTER.")
         if operands[3]=="DIRECT":
             if operands[1]<len(self.memory)-1 and operands[0]<13: #if location does not exceed memory, and if the register is a valid register
                 self.r[operands[0]]=self.memory.fetch_data(operands[1])
@@ -100,20 +109,58 @@ class Program:
     def ADD(self,operands): #(d,n,operand2, !!address_type1,address_type2,address_type3!!)
         if self.debug_mode:
             pseudo_print(f"OPERANDS FOR ADD INSTRUCTION {operands}")
-        self.temp_value=0
+        self.value=0
+        
+        #d
         if operands[3]!="REGISTER": #if d is not a register
             pseudo_print(f"FATAL ERROR AT LINE {self.PC}. YOU MUST BE STORING THE ADD RESULT IN A REGISTER.")
+        if operands[0]>12 and operands[3]=="REGISTER":
+            pseudo_print(f"FATAL ERROR AT LINE {self.PC}. Rd IS AN INVALID REGISTER.")
+        #n
         if operands[4]!="REGISTER": #if n is not a register
             pseudo_print(f"FATAL ERROR AT LINE {self.PC}. Rn MUST BE A REGISTER.")
-        if operands[5]=="DIRECT":
-            self.temp_value=2134234#FINISH
-    def SUB(self,operands): #(d,n,operand2, !!mode!!) mode checks whether <operand2> is a register
+            if operands[1]>12:
+                pseudo_print(f"FATAL ERROR AT LINE {self.PC}. Rn IS AN INVALID REGISTER.")
+        #operand2
+        if operands[5]=="DIRECT": 
+            self.value=operands[2]
+        if operands[5]=="IMMEDIATE":
+            self.value=self.memory.fetch_data(operands[2])
+            print(self.value)
+        if operands[5]=="REGISTER":
+            if operands[2]>12:
+                pseudo_print(f"FATAL ERROR AT LINE {self.PC}. The register specified in <operand2> is not a valid register.")
+            self.value=self.r[operands[2]]
+        self.r[operands[0]]==self.r[operands[1]]+self.value
+        if self.debug_mode:
+            pseudo_print(f"RESULT: r{operands[0]} = {self.r[operands[0]]}")
+    def SUB(self,operands): #(d,n,operand2, !!address_type1,address_type2,address_type3!!)
         if self.debug_mode:
             pseudo_print(f"OPERANDS FOR SUB INSTRUCTION: {operands}")
-        if operands[5]!="REGISTER": 
-            self.r[operands[0]]=self.r[operands[1]]-operands[2]
-        else:
-            self.r[operands[0]]=self.r[operands[1]]-self.r[operands[2]]
+
+        #d
+        if operands[3]!="REGISTER":
+            pseudo_print(f"FATAL ERROR AT LINE {self.PC}. Rd MUST BE A REGISTER")
+        if operands[0]>12 and operands[3]=="REGISTER":
+            pseudo_print(f"FATAL ERROR AT LINE {self.PC}. Rd IS AN INVALID REGISTER.")
+        
+        #n
+        if operands[4]!="REGISTER":
+            pseudo_print(f"FATAL ERROR AT LINE {self.PC}. Rn MUST BE A REGISTER.")
+        if operands[1]>12 and operands[4]=="REGISTER":
+            pseudo_print(f"FATAL ERROR AT LINE {self.PC}. Rn MUST BE A VALID REGISTER.")
+        
+        #operand2
+        if operands[5]=="DIRECT":
+            self.value=operands[2]
+        if operands[5]=="IMMEDIATE":
+            self.value=self.memory.fetch_data(operands[2])
+        if operands[5]=="REGISTER":
+            if operands[2]>12:
+                pseudo_print(f"FATAL ERROR AT LINE {self.PC}. THE REGISTER IN <operand2> MUST BE A VALID REGISTER.")
+            self.value=self.r[operands[2]]
+        
+        self.r[operands[0]]==self.r[operands[1]]-self.value
         if self.debug_mode:
             pseudo_print(f"RESULT: r{operands[0]} = {self.r[operands[0]]}")
 
@@ -176,9 +223,13 @@ class Program:
             pseudo_print(f"THE COMPARISON FOUND THESE CONDITIONS: {self.cmp_output}") #show result of comparison
 
     def B(self,operands): #(location,condition,) NOTE: labels are replaced with their corresponding memory locations in memory when parsed.
-        #pseudo_print(f"OPERANDS FOR BRANCH INSTRUCTION: {operands}") #show all operands [Location,Condition]
+        print("wuh!")
+        if self.debug_mode:
+            pseudo_print(f"OPERANDS FOR BRANCH INSTRUCTION: {operands}") #show all operands [Location,Condition]
         if operands[1]=="NO CONDITION":
             self.PC=operands[0]
+            if self.debug_mode:
+                print(f"BRANCH INSTRUCTION HAS SENT THE PC TO {self.PC}.")
         else:
             #pseudo_print(self.cmp_output) #check CMP instruction working
             if operands[1] in self.cmp_output: #if condition matches
@@ -250,8 +301,14 @@ class Program:
             self.commands[self.command[1][0]](self.command[1][1])
 
     def run(self):
+        global max_runtime
+        self.program_run_time_count=0
         while self.isRunning:
             self.fetch_execute_cycle()
+            self.program_run_time_count+=1
+            if self.program_run_time_count>=max_runtime: #if it's been running for WAY too long. (ten thousand cycles at the moment)
+                pseudo_print("YOUR PROGRAM HAS EXCEEDED MAX RUNTIME. NOTE THAT THIS IS A LARGE NUMBER, SO IT IS LIKELY YOU HAVE AN INFINITE LOOP.")
+                self.isRunning=False
 
 def run_program(debug_flag,file):
     global output
@@ -282,4 +339,4 @@ if __name__=="__main__":
         debug_flag=False
     file = "LDR r2,#3"
     print(run_program(debug_flag,file))'''
-    print(run_program(True,"MOV r1,#2\nMOV r2,#4\nMOV r0,#6\n ADD r0,r1,r2\nOUTPUT r0\n HALT"))
+    print(run_program(True,"MOV r0, #1\nLabelName:\nOUTPUT r0\nB LabelName\n HALT"))
