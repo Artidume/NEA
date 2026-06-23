@@ -8,6 +8,7 @@ def pseudo_print(string): #highjacking the print statement to simply write to a 
     global output
     if output!="":
         output+="\n"
+        #output+="☃"
     output += (str(string))
 
 '''
