@@ -1,5 +1,6 @@
-These websites I have used to aid my programming:
+I have used the following websites to aid my programming:
 
 https://www.geeksforgeeks.org/ used for understanding of string manipulation
+https://www.w3schools.com/python/python_strings_slicing.asp for string manipulation (again)
 https://www.w3schools.com/python/python_dictionaries.asp   used to help with python_dictionaries
 https://www.geeksforgeeks.org/python/check-if-value-is-int-or-float-in-python/ fix an annoying error where the operand came in as an int and not a str, which had to be handled.

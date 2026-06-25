@@ -51,6 +51,7 @@ class Memory:
     def fetch(self,location):
         return self.memoryArray[location]
     def fetch_data(self,location,data_location=0):
+        print(self.memoryArray)
         if self.memoryArray[location][0]=="INSTRUCITON":
             return self.memoryArray[location][1][1][data_location]
         elif self.memoryArray[location][0]=="DATA":
@@ -60,7 +61,7 @@ class Memory:
             return "Not Initialised"
 #Program Composed of ("has-a") Memory
 class Program:
-    def __init__(self, labels, debug_mode=False):
+    def __init__(self, labels, pre_init_memory, debug_mode=False):
         self.debug_mode=debug_mode #will show all "output" types, incl. PC
         self.memory = Memory()
         self.isRunning=True
@@ -83,7 +84,6 @@ class Program:
             "LSR":self.LSR,
             "HALT":self.HALT,
             "OUTPUT":self.OUTPUT, 
-            "HALT":self.HALT,
         }
         self.labels=labels
     def LDR(self,operands): #(d,memory_ref,!!address_type1,address_type2!!) NOTE: an extra paramter is passed to say the address type. ignore address_type1
@@ -94,7 +94,7 @@ class Program:
         elif operands[0]>12 and operands[2]=="REGISTER":
             pseudo_print(f"FATAL ERROR AT LINE {self.PC}. Rd IS AN INVALID REGISTER.")
         if operands[3]=="DIRECT":
-            if operands[1]<len(self.memory)-1 and operands[0]<13: #if location does not exceed memory, and if the register is a valid register
+            if operands[1]<self.memory.length-1 and operands[0]<13: #if location does not exceed memory, and if the register is a valid register
                 self.r[operands[0]]=self.memory.fetch_data(operands[1])
             elif operands[1]>len(self.memory)-1:
                 pseudo_print(f"FATAL ERROR AT LINE {self.PC}: MEMORY LOCATION {operands[1]} EXCEEDS THE BOUNDS OF ALLOCATED MEMORY.")
@@ -152,14 +152,19 @@ class Program:
             pseudo_print(f"FATAL ERROR AT LINE {self.PC}. Rn MUST BE A VALID REGISTER.")
         
         #operand2
-        if operands[5]=="DIRECT":
-            self.value=operands[2]
+        if self.debug_mode:
+            print(operands[5])
         if operands[5]=="IMMEDIATE":
+            self.value=operands[2]
+        if operands[5]=="DIRECT":
             self.value=self.memory.fetch_data(operands[2])
         if operands[5]=="REGISTER":
             if operands[2]>12:
                 pseudo_print(f"FATAL ERROR AT LINE {self.PC}. THE REGISTER IN <operand2> MUST BE A VALID REGISTER.")
             self.value=self.r[operands[2]]
+        
+        if self.debug_mode:
+            pseudo_print(f"VALUE FOUND: {self.value}")
         
         self.r[operands[0]]==self.r[operands[1]]-self.value
         if self.debug_mode:
@@ -224,7 +229,7 @@ class Program:
             pseudo_print(f"THE COMPARISON FOUND THESE CONDITIONS: {self.cmp_output}") #show result of comparison
 
     def B(self,operands): #(location,condition,) NOTE: labels are replaced with their corresponding memory locations in memory when parsed.
-        print("wuh!")
+        #print("wuh!")
         if self.debug_mode:
             pseudo_print(f"OPERANDS FOR BRANCH INSTRUCTION: {operands}") #show all operands [Location,Condition]
         if operands[1]=="NO CONDITION":
@@ -260,21 +265,20 @@ class Program:
     def LSL(self,operands): #(d,n,operand2)
         self.r[operands[0]]=self.r[operands[1]] << operands[2] # << = bitwise shift left
     
-    def LSR(self,operands): #(d,n,operand2)
+    def LSR(self,operands): #(d,n,operand2 !!address_type1,address_type2,address_type3!!)
         self.r[operands[0]]=self.r[operands[1]] >> operands[2] # >> = bitwise shift right
     
     def HALT(self,operands):
         self.isRunning=False
     def OUTPUT(self,operands):
         if self.debug_mode:
-            pseudo_print(f"OPERANDS FOR OUTPUT INSTRUCTION: {operands}")
+            print(f"OPERANDS FOR OUTPUT INSTRUCTION: {operands}")
         if operands[1]=="REGISTER":
             pseudo_print(self.r[operands[0]])
         elif operands[1]=="IMMEDIATE":
             pseudo_print(operands[0])
         elif operands[1]=="DIRECT":
             pseudo_print(self.memory.fetch_data(operands[0]))
-    
     def fetch_execute_cycle(self): #runs FE Cycle once.
         if self.PC>self.memory.getLength():
             print(f"FATAL ERROR: Program counter (Currently {self.PC}) exceeded bounds of memory.")
@@ -292,14 +296,17 @@ class Program:
             self.isRunning=False
             return 0
         elif self.command[0]=="DATA":
-            print(f"FATAL ERROR. PC ENCOUNTERED A NON INSTRUCTION AND HAS QUIT. LINE {self.PC}")
-            print(self.command,self.PC)
+            pseudo_print(f"FATAL ERROR. PC ENCOUNTERED A NON INSTRUCTION AND HAS QUIT. LINE {self.PC}")
+            #print(self.command,self.PC)
             self.isRunning=False
             return 0
         else: #assume no error
             #print(self.PC) #show location of PC
-    
-            self.commands[self.command[1][0]](self.command[1][1])
+            #print(f"COMMAND {self.command}")
+            if self.command[0]=="MEM": #skip MEM instruction
+                self.PC+=1
+            else:
+                self.commands[self.command[1][0]](self.command[1][1])
 
     def run(self):
         global max_runtime
@@ -319,9 +326,12 @@ def run_program(debug_flag,file):
     #pseudo_print(program)
     program_as_an_array=program
     i=0
-    #print(program_as_an_array)
+    print(program_as_an_array)
     for instruction in program_as_an_array:
+        print(instruction,"\t AWESOME")
         if instruction[0:6]!="ERROR":
+            if instruction[0]=="MEM":
+                main_program.memory.set(int(instruction[1][0]),["DATA",instruction[1][1]])
             main_program.memory.set(i,instruction)
         i+=1
         #if instruction[0:5]=="LABEL":
@@ -340,4 +350,4 @@ if __name__=="__main__":
         debug_flag=False
     file = "LDR r2,#3"
     print(run_program(debug_flag,file))'''
-    print(run_program(True,"MOV r0, #1\nLabelName:\nOUTPUT r0\nB LabelName\n HALT"))
+    print(run_program(True,"MEM 100,220\nOUTPUT 100\nHalt"))
