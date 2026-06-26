@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<head>
+
+</head>
+<p>
+{%- for letter in output -%}
+{%- if letter == "☃" -%}
+<br>
+{%- else -%}
+{{letter}}
+{% endif %}
+{% endfor %}
+</p>
