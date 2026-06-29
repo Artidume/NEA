@@ -1,7 +1,0 @@
-LDR r2, #5
-OUTPUT r2
-CMP r2, #3
-BLT 06
-HALT
-OUTPUT #4
-HALT
