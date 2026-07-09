@@ -110,6 +110,7 @@ class Program:
     def ADD(self,operands): #(d,n,operand2, !!address_type1,address_type2,address_type3!!)
         if self.debug_mode:
             pseudo_print(f"OPERANDS FOR ADD INSTRUCTION {operands}")
+            print(f"OPERANDS FOR ADD INSTRUCTION {operands}")
         self.value=0
         
         #d
@@ -123,9 +124,9 @@ class Program:
             if operands[1]>12:
                 pseudo_print(f"FATAL ERROR AT LINE {self.PC}. Rn IS AN INVALID REGISTER.")
         #operand2
-        if operands[5]=="DIRECT": 
-            self.value=operands[2]
-        if operands[5]=="IMMEDIATE":
+        if operands[5]=="IMMEDIATE": 
+            self.value=int(operands[2])
+        if operands[5]=="DIRECT":
             self.value=self.memory.fetch_data(operands[2])
             if self.debug_mode:
                 pseudo_print(f"VALUE AT MEMORY LOCATION {operands[2]}: {self.value}") #show value which has been fetched
@@ -133,7 +134,9 @@ class Program:
             if operands[2]>12:
                 pseudo_print(f"FATAL ERROR AT LINE {self.PC}. The register specified in <operand2> is not a valid register.")
             self.value=self.r[operands[2]]
-        self.r[operands[0]]==self.r[operands[1]]+self.value
+        if self.debug_mode:
+            pseudo_print(f"OPERATION: r{operands[0]} = r{operands[1]} ({self.r[operands[1]]}) + {self.value}")
+        self.r[operands[0]]=self.r[operands[1]]+self.value
         if self.debug_mode:
             pseudo_print(f"RESULT: r{operands[0]} = {self.r[operands[0]]}")
     def SUB(self,operands): #(d,n,operand2, !!address_type1,address_type2,address_type3!!)
@@ -229,7 +232,7 @@ class Program:
             pseudo_print(f"THE COMPARISON FOUND THESE CONDITIONS: {self.cmp_output}") #show result of comparison
 
     def B(self,operands): #(location,condition,) NOTE: labels are replaced with their corresponding memory locations in memory when parsed.
-        #print("wuh!")
+        #print("wuh!") #branch wasn't working. this helped
         if self.debug_mode:
             pseudo_print(f"OPERANDS FOR BRANCH INSTRUCTION: {operands}") #show all operands [Location,Condition]
         if operands[1]=="NO CONDITION":
@@ -284,6 +287,7 @@ class Program:
     def fetch_execute_cycle(self): #runs FE Cycle once.
         if self.PC>self.memory.getLength():
             pseudo_print(f"FATAL ERROR: Program counter (Currently {self.PC}) exceeded bounds of memory.")
+            pseudo_print(f"FATAL ERROR: Program counter (Currently {self.PC}) exceeded bounds of memory.")
             self.isRunning=False
             return 0
         self.command=self.memory.fetch(self.PC)
@@ -291,9 +295,11 @@ class Program:
         self.PC+=1
         if self.command==["NULL"]:
             pseudo_print(f"FATAL ERROR. NO DATA FOUND AT ADDRESS {self.PC}. Perhaps you missed a HALT instruction?")
+            pseudo_print(f"FATAL ERROR. NO DATA FOUND AT ADDRESS {self.PC}. Perhaps you missed a HALT instruction?")
             self.isRunning=False
             return 0
         elif self.command[0]=="ERROR":
+            pseudo_print(f"PARSING ERROR OCCURED. CHECK YOUR CODE IS WRITTEN AND FORMATTED CORRECTLY. LINE {self.PC}")
             pseudo_print(f"PARSING ERROR OCCURED. CHECK YOUR CODE IS WRITTEN AND FORMATTED CORRECTLY. LINE {self.PC}")
             self.isRunning=False
             return 0
