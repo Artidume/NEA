@@ -3,5 +3,5 @@
 
 </head>
 <p>
-{{output}}
+{%- for character in output-%}{%- if character!="☃" -%}{{character}}{%- else -%}<br>{% endif %}{% endfor %}
 </p>

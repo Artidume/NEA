@@ -7,8 +7,8 @@ max_runtime=10000
 def pseudo_print(string): #highjacking the print statement to simply write to a larger output feels so funky
     global output
     if output!="":
-        output+="\n"
-        #output+="☃"
+        #output+="\n"
+        output+="☃" #magic ascii character which I am using to represent a newline.
     output += (str(string))
 
 '''
@@ -51,7 +51,7 @@ class Memory:
     def fetch(self,location):
         return self.memoryArray[location]
     def fetch_data(self,location,data_location=0):
-        print(self.memoryArray)
+        #print(self.memoryArray) #show all of memory
         if self.memoryArray[location][0]=="INSTRUCITON":
             return self.memoryArray[location][1][1][data_location]
         elif self.memoryArray[location][0]=="DATA":
@@ -61,7 +61,7 @@ class Memory:
             return "Not Initialised"
 #Program Composed of ("has-a") Memory
 class Program:
-    def __init__(self, labels, pre_init_memory, debug_mode=False):
+    def __init__(self, labels, debug_mode=False):
         self.debug_mode=debug_mode #will show all "output" types, incl. PC
         self.memory = Memory()
         self.isRunning=True
@@ -127,7 +127,8 @@ class Program:
             self.value=operands[2]
         if operands[5]=="IMMEDIATE":
             self.value=self.memory.fetch_data(operands[2])
-            print(self.value)
+            if self.debug_mode:
+                pseudo_print(f"VALUE AT MEMORY LOCATION {operands[2]}: {self.value}") #show value which has been fetched
         if operands[5]=="REGISTER":
             if operands[2]>12:
                 pseudo_print(f"FATAL ERROR AT LINE {self.PC}. The register specified in <operand2> is not a valid register.")
@@ -137,7 +138,7 @@ class Program:
             pseudo_print(f"RESULT: r{operands[0]} = {self.r[operands[0]]}")
     def SUB(self,operands): #(d,n,operand2, !!address_type1,address_type2,address_type3!!)
         if self.debug_mode:
-            pseudo_print(f"OPERANDS FOR SUB INSTRUCTION: {operands}")
+            pseudo_print(f"OPERANDS FOR SUB INSTRUCTION: {operands[0]}:{operands[3]},{operands[1]}:{operands[4]},{operands[2]}:{operands[5]}")
 
         #d
         if operands[3]!="REGISTER":
@@ -152,8 +153,6 @@ class Program:
             pseudo_print(f"FATAL ERROR AT LINE {self.PC}. Rn MUST BE A VALID REGISTER.")
         
         #operand2
-        if self.debug_mode:
-            print(operands[5])
         if operands[5]=="IMMEDIATE":
             self.value=operands[2]
         if operands[5]=="DIRECT":
@@ -178,8 +177,9 @@ class Program:
             if self.debug_mode:
                 #pseudo_print(self.r[operands[0]])
                 pass
-        elif operands[3]=="DIRECT":
-            self.r[operands[0]]=self.memory.fetch_data(operands[1])
+        elif operands[3]=="DIRECT": #this isn't supported by original spec.
+            pseudo_print(f"ERROR AT LINE {self.PC}. THE MOV INSTRUCTION DOES NOT SUPPORT DIRECT MEMORY ACCESS IN THE AQA SPECIFICATION.")
+            self.isRunning=False
         elif operands[3]=="REGISTER":
             self.r[operands[0]]=self.r[operands[1]]
         if self.debug_mode:
@@ -235,7 +235,7 @@ class Program:
         if operands[1]=="NO CONDITION":
             self.PC=operands[0]
             if self.debug_mode:
-                print(f"BRANCH INSTRUCTION HAS SENT THE PC TO {self.PC}.")
+                pseudo_print(f"BRANCH INSTRUCTION HAS SENT THE PC TO {self.PC}.")
         else:
             #pseudo_print(self.cmp_output) #check CMP instruction working
             if operands[1] in self.cmp_output: #if condition matches
@@ -272,27 +272,29 @@ class Program:
         self.isRunning=False
     def OUTPUT(self,operands):
         if self.debug_mode:
-            print(f"OPERANDS FOR OUTPUT INSTRUCTION: {operands}")
+            pseudo_print(f"OPERANDS FOR OUTPUT INSTRUCTION: {operands}")
         if operands[1]=="REGISTER":
+            print(self.r[operands[0]])
             pseudo_print(self.r[operands[0]])
         elif operands[1]=="IMMEDIATE":
             pseudo_print(operands[0])
         elif operands[1]=="DIRECT":
+            print(operands)
             pseudo_print(self.memory.fetch_data(operands[0]))
     def fetch_execute_cycle(self): #runs FE Cycle once.
         if self.PC>self.memory.getLength():
-            print(f"FATAL ERROR: Program counter (Currently {self.PC}) exceeded bounds of memory.")
+            pseudo_print(f"FATAL ERROR: Program counter (Currently {self.PC}) exceeded bounds of memory.")
             self.isRunning=False
             return 0
         self.command=self.memory.fetch(self.PC)
 
         self.PC+=1
         if self.command==["NULL"]:
-            print(f"FATAL ERROR. NO DATA FOUND AT ADDRESS {self.PC}. Perhaps you missed a HALT instruction?")
+            pseudo_print(f"FATAL ERROR. NO DATA FOUND AT ADDRESS {self.PC}. Perhaps you missed a HALT instruction?")
             self.isRunning=False
             return 0
         elif self.command[0]=="ERROR":
-            print(f"PARSING ERROR OCCURED. CHECK YOUR CODE IS WRITTEN AND FORMATTED CORRECTLY. LINE {self.PC}")
+            pseudo_print(f"PARSING ERROR OCCURED. CHECK YOUR CODE IS WRITTEN AND FORMATTED CORRECTLY. LINE {self.PC}")
             self.isRunning=False
             return 0
         elif self.command[0]=="DATA":
@@ -304,7 +306,7 @@ class Program:
             #print(self.PC) #show location of PC
             #print(f"COMMAND {self.command}")
             if self.command[0]=="MEM": #skip MEM instruction
-                self.PC+=1
+                pass
             else:
                 self.commands[self.command[1][0]](self.command[1][1])
 
@@ -320,19 +322,23 @@ class Program:
 
 def run_program(debug_flag,file):
     global output
-    temp=program_parser_WEB.getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme(file)
-    program=temp[0]
-    main_program=Program(temp[1],debug_flag) #a True value being parsed means debug mode is active
+    output=""
+    program_decompiled=program_parser_WEB.getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme(file) #[(PROGRAM),(Labels)]
+    program=program_decompiled[0]
+    main_program=Program(program_decompiled[1],debug_flag) #a True value being parsed means debug mode is active
     #pseudo_print(program)
     program_as_an_array=program
     i=0
-    print(program_as_an_array)
+    #print(program_as_an_array)
     for instruction in program_as_an_array:
-        print(instruction,"\t AWESOME")
-        if instruction[0:6]!="ERROR":
+        if type(instruction)!=str: #The only way the instruction should be a string is if there is an error (as errors report as "ERROR: .....", which is a string)
             if instruction[0]=="MEM":
-                main_program.memory.set(int(instruction[1][0]),["DATA",instruction[1][1]])
+                
+                main_program.memory.set(int(instruction[1][0]),["DATA",instruction[1][1][1:]])
             main_program.memory.set(i,instruction)
+        else: #if parser finds an error
+            output=instruction+f" (at line {i})" 
+            return output #quit before execution
         i+=1
         #if instruction[0:5]=="LABEL":
         #pseudo_print(instruction)

@@ -1,4 +1,22 @@
 #NOTE: I am using ".aqasm" as my file extension. Only because its fun. it is a portmanteau of aqa and asm.
+def find_type(operand):
+    try:
+        int(operand)
+        isInt=True
+        return "DIRECT"
+    except:
+        if operand[0]=="#":
+            try:
+                int(operand[1:])
+                return "IMMEDIATE"
+            except:
+                return "WHAT. NO. STOP THAT."
+        if operand[0].upper()=="R":
+            try:
+                int(operand[1:])
+                return "REGISTER"
+            except:
+                return "WHAT. NO. STOP THAT."
 
 
 def parse(line,line_number):
@@ -16,44 +34,18 @@ def parse(line,line_number):
         splitted=line.split(" ",1) #splits into opcode and operand in the form ["opcode","operands"] 
         opcode=splitted[0].upper().strip()
         #print(opcode)
-        if opcode=="MEM": #MEM is a pseudo-instruction to place data in memory. cheers mush
+        if opcode=="MEM": #MEM is a pseudo-instruction to place data in memory. 
             operands=splitted[1]
             operands=operands.strip().split(",") #separates using ", ". now each operand is distinct.
             #print("ARGH 2!")
             #print(f"operands {operands}")
-            try:
-                int(operands[0])
-                isInt_1 = True
-            except:
-                isInt_1 = False
-            if not(isInt_1):
-                #print("ERROR A")
-                return "ERROR: MEM OPERAND1 MUST BE DIRECT"
-            try:
-                operands[1]=int(operands[1])
-                isInt_2=True
-            except:
-                isInt_2=False
-
-            if isInt_2:
-                #print("ERROR B")
-                return "ERROR: MEM OPERAND2 MUST BE IMMEDIATE"
-            elif operands[1][0]!="#":
-                #print("ERROR C")
-                return "ERROR: MEM OPERAND2 MUST BE IMMEDIATE"
+            if find_type(operands[0]) != "DIRECT":
+                    return "ERROR: MEM OPERAND1 MUST BE DIRECT"
+            
+            if find_type(operands[1])!="IMMEDIATE":
+                return "ERROR: MEM OPERAND 2 MUST BE IMMEDIATE"
             else:
-                #print("D")
-                try:
-                    int(operands[1][1:])
-                    operand2_is_int=True
-                except:
-                    operand2_is_int=False
-                if operand2_is_int:
-                    print("all cold on the eastern front")
-                    return ["MEM",[operands[0],operands[1][1:]]],False
-                else:
-                    #print("ERROR E")
-                    return "ERROR: HUH?????"
+                return ["MEM",[operands[0],[operands[1][1:]]]],False
         if opcode=="HALT":
             return ["INSTRUCTION",["HALT",[]]],False #exit parser. empty array used as empty "operands"
         if opcode[0]!="B" and opcode[0]!="MEM":
@@ -86,8 +78,8 @@ def parse(line,line_number):
                     decoded_operands.append(condition)
 
                 else:
-                    print("FATAL ERROR: Invalid condition. The conditions are:\nEQ - Equal to \nGT - Greater Than\nLT - Less Than\nNE - Not Equal To")
-                    return "ERROR: Branch command"
+                    
+                    return "ERROR: Invalid condition. The conditions are:\nEQ - Equal to \nGT - Greater Than\nLT - Less Than\nNE - Not Equal To"
 
             return ["INSTRUCTION",["B",decoded_operands]], False
         
@@ -154,8 +146,8 @@ def parse(line,line_number):
                 if condition in ["EQ","GT","LT","NE"]: #if invalid condition
                     decoded_operands.append(condition)
                 else:
-                    print("FATAL ERROR: Invalid condition. The conditions are:\nEQ - Equal to \nGT - Greater Than\nLT - Less Than\nNE - Not Equal To")
-                    return "ERROR: Branch command"
+
+                    return "FATAL ERROR: Invalid condition. The conditions are:\nEQ - Equal to \nGT - Greater Than\nLT - Less Than\nNE - Not Equal To"
         
 
         stage_2_output.append(decoded_operands)
@@ -206,9 +198,11 @@ def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryo
                 line=(None,False)
             else:
                 line=parse(readline,line_number)
-                #print(line)
+
                 if line != (None,False) and line!="ERROR" and line[1]==False:
                     program.append(line[0])
+                if type(line)==str:
+                    program.append(line)
                 line_number+=1
     else:
         with open("program.aqasm","r") as f:
@@ -233,6 +227,6 @@ def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryo
 
 
 if __name__ =="__main__":
-    print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme("Label:\nLDR r2, #10\nADD r2,r2,#1\nOUTPUT r2\nB Label")) #test <OUTPUT #2\nB labelname \n HALT\n jjjj \n labelname: \n OUTPUT labelname \n HALT\n>
+    print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme("MEM 100,220\nOUTPUT 100\nHalt")) #test <OUTPUT #2\nB labelname \n HALT\n jjjj \n labelname: \n OUTPUT labelname \n HALT\n>
 
     #getLabels("Label1:\nLabel2:\nLabel3 :\n") test for getLabels(). Should produce {"Label1": 0, "Label2": 1, "Label3": 2}

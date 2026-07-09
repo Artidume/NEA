@@ -1,0 +1,9 @@
+S - Specific
+M - Measurable (Done or not done, and if possible, to what extent)
+A - Achievable 
+R - Relevant (beeeg important)
+T - Time (Possible in the time, or a stretch goal which would be nice to have?)
+
+Stretch objective has to be a stretch objective, not part of the core objectives
+
+* Security is important. Make that an objective
