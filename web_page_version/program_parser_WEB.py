@@ -2,7 +2,6 @@
 def find_type(operand):
     try:
         int(operand)
-        isInt=True
         return "DIRECT"
     except:
         if operand[0]=="#":
@@ -29,8 +28,10 @@ def parse(line,line_number):
         stage_2_output=[]
         label=None
         line=line.replace("\n"," ").strip() #remove trailing line break
-        #print(line) show line after initial string formatting
-        
+        if line[-1:]==":": #solution to "get the last char of the string" courtesy of https://www.geeksforgeeks.org/python/python-get-last-n-characters-of-a-string/
+            label = line[:len(line)-1].strip()
+            return ["LABEL",label], False #this will be dealt with in the main program. kickin' that can down the road baybee
+
         splitted=line.split(" ",1) #splits into opcode and operand in the form ["opcode","operands"] 
         opcode=splitted[0].upper().strip()
         #print(opcode)
@@ -154,8 +155,8 @@ def parse(line,line_number):
         return ["INSTRUCTION",stage_2_output],False
         #print(output)
     except:
-        #print(splitted)
-        #print(f"Es gibt ein Fehler: {operand}")
+        print(splitted)
+        print(f"Es gibt ein Fehler: {operand}")
         if len(line.strip())==0:
             return ["DATA",0],False
         if len(splitted)==0:
@@ -171,7 +172,7 @@ def getLabels(label_f):
             #print("THIS LINE IS A LABEL")
             #print(line_number)
 
-            stage_2=label[0:len(label)-1].strip() #get all of opcode, except for ":". .strip() removes whitespace
+            stage_2=label.strip()[0:len(label.strip())-1] #get all of opcode, except for ":". .strip() removes whitespace
             labels.update({stage_2:line_number})
         line_number+=1
     #print(labels)
@@ -227,6 +228,6 @@ def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryo
 
 
 if __name__ =="__main__":
-    print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme("MEM 100,220\nOUTPUT 100\nHalt")) #test <OUTPUT #2\nB labelname \n HALT\n jjjj \n labelname: \n OUTPUT labelname \n HALT\n>
+    print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme("MOV r1,#25\nMOV r2,#3\n LSR r1,r1,r2\nOUTPUT r1\nB END\nEND:\nHALT")) #test <OUTPUT #2\nB labelname \n HALT\n jjjj \n labelname: \n OUTPUT labelname \n HALT\n>
 
     #getLabels("Label1:\nLabel2:\nLabel3 :\n") test for getLabels(). Should produce {"Label1": 0, "Label2": 1, "Label3": 2}
