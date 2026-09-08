@@ -10,8 +10,15 @@ def index():
 @app.route("/output",methods=["POST"])
 def read_form():
     data=request.form
-    #print(data["program"])
-    return render_template("output_program.html",output=main_WEB.run_program(False,data["program"]))
+    try:
+        if data["debug_flag"] == "True":
+            debug_flag=True
+        else:
+            debug_flag=False
+    except:
+        debug_flag=False
+    
+    return render_template("output_program.html",output=main_WEB.run_program(debug_flag,data["program"]))
 
 @app.route("/program", methods=["GET"])
 def fill_out_form():

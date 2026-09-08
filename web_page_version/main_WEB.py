@@ -6,12 +6,8 @@ max_runtime=10000
 
 def pseudo_print(string): #highjacking the print statement to simply write to a larger output feels so funky
     global output
-    global running_locally
     if output!="":
-        if running_locally:
-            output+="\n"
-        else:
-            output+="☃" #magic ascii character which I am using to represent a newline. Gets replaced in the HTML using Django.
+        output+="☃" #magic ascii character which I am using to represent a newline. Gets replaced in the HTML using Django.
     output += (str(string))
 
 def format_b(number): #the only reason I made this is because when formatting a number to binary, it does not have trailing 0s.
@@ -59,7 +55,7 @@ class Memory:
         self.length=max_size
     def getLength(self):
         return self.length
-    def set(self,location,data):
+    def set(self,location,data): #LOCATION THEN DATA
         self.memoryArray[location]=data
         #pseudo_print(self.memoryArray[location]) check data has been set correctly. Remember format is [TYPE,[Opcode,[operands]]]
     def fetch(self,location):
@@ -114,12 +110,17 @@ class Program:
                 pseudo_print(f"FATAL ERROR AT LINE {self.PC}: MEMORY LOCATION {operands[1]} EXCEEDS THE BOUNDS OF ALLOCATED MEMORY.")
         else:
             pseudo_print(f"FATAL ERROR AT LINE {self.PC}. <memory_ref> CANNOT BE A REGISTER OR IMMEDIATE ")
+        if self.debug_mode:
+            pseudo_print(f"REGISTER {operands[0]} NOW HAS VALUE {self.r[operands[0]]}.")
     def STR(self,operands): #(d,memory_ref)
         if self.debug_mode:
             pseudo_print(f"OPERANDS FOR STR INSTRUCTION: {operands}")
         if operands[0]>12:
             pseudo_print(f"FATAL ERROR. r{operands[0]} DOES NOT EXIST. THE REGISTERS ARE NUMBERED 0-12")
-        self.memory.set(operands[1],["DATA",self.r[operands[0]]])
+        self.memory.set(operands[1],["DATA",int(self.r[operands[0]])])
+        if self.debug_mode:
+            pseudo_print(f"{self.memory.memoryArray}")
+        #.memory.set(int(instruction[1][0]),["DATA",int(instruction[1][1][0])]) #LOCATION, DATA
     
     def ADD(self,operands): #(d,n,operand2, !!address_type1,address_type2,address_type3!!)
         if self.debug_mode:
@@ -258,10 +259,11 @@ class Program:
             if operands[1] in self.cmp_output: #if condition matches
                 self.PC=operands[0] #move PC to new location
                 self.cmp_output="" #reset comparison flags
-                #pseudo_print(operands[1])
-                #pseudo_print(self.cmp_output)
-                #pseudo_print(operands[1] in self.cmp_output)
+                if self.debug_mode:
+                    pseudo_print(f"BRANCH INSTRUCTION CONDITION MET. BRANCHING TO {self.PC}.")
             else:
+                if self.debug_mode:
+                    pseudo_print(F"BRANCH INSTRUCTION CONDITION NOT MET. NO BRANCH.")
                 #pseudo_print("No dice") #(condition failed)
                 pass
         #pseudo_print("PC",self.PC) #Test it has moved the PC correctly
@@ -533,18 +535,29 @@ def run_program(debug_flag,file):
     i=0
 
     for instruction in program_as_an_array:
-        if type(instruction)!=str: #The only way the instruction should be a string is if there is an error (as errors report as "ERROR: .....", which is a string)
-            if instruction[0]=="MEM":
-                
-                main_program.memory.set(int(instruction[1][0]),["DATA",instruction[1][1][1:]])
+        if type(instruction)!=str: #if not MEM intruction, this is an error.
+            if instruction[0]=="MEM": #<LOCATION> (direct), <DATA> (immediate)
+                '''
+                #check mem instruction is functioning as intended
+                pseudo_print("--------------")
+                pseudo_print(instruction)
+                pseudo_print(f"MEMORY LOCATION {instruction[1][0]} SHOULD NOW BE {int(instruction[1][1][0])}")
+                '''
+                main_program.memory.set(int(instruction[1][0]),["DATA",int(instruction[1][1][0])]) #instruction[1] is the operands. the second operand is technically a list, so grab first item (the only item) in said list.
             main_program.memory.set(i,instruction)
         else: #if parser finds an error
-            output=instruction+f" (at line {i})" 
+            output=instruction+f" (at line {i})"+". Are you sure you wrote your program correctly?" 
             return output #quit before execution
         i+=1
         #if instruction[0:5]=="LABEL":
         #pseudo_print(instruction)
-    pseudo_print(main_program.memory.memoryArray)
+    if debug_flag:
+        pseudo_print("The following is the program in memory.")
+        pseudo_print("---------------------")
+        pseudo_print(main_program.memory.memoryArray)
+        pseudo_print("---------------------")
+        pseudo_print("The following is the output.")
+        pseudo_print("---------------------")
     main_program.run()
     #print(output)
     return output
@@ -559,6 +572,4 @@ if __name__=="__main__":
     file = "LDR r2,#3"
     print(run_program(debug_flag,file))'''
     
-    global running_locally
-    running_locally=True
-    print(run_program(True,"MOV r1,#25\nMOV r2,#3\n LSR r1,r1,r2\nOUTPUT r1\nB END\nEND:\nOUTPUT #360\nHALT"))
+    print(run_program(True,"MOV r1,#25\nMOV r2,#3\n LSR r1,r1,r2\nOUTPUT r1\nB END\nEND:\nOUTPUT #360\nHALT")) #type a program here to debug it locally

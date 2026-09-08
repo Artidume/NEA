@@ -6,16 +6,15 @@ def find_type(operand):
     except:
         if operand[0]=="#":
             try:
-                int(operand[1:])
                 return "IMMEDIATE"
             except:
-                return "WHAT. NO. STOP THAT."
+                return "WHAT. NO. STOP THAT. HOW"
         if operand[0].upper()=="R":
             try:
                 int(operand[1:])
                 return "REGISTER"
             except:
-                return "WHAT. NO. STOP THAT."
+                return "WHAT. NO. STOP THAT. WHY"
 
 
 def parse(line,line_number):
@@ -35,17 +34,15 @@ def parse(line,line_number):
         splitted=line.split(" ",1) #splits into opcode and operand in the form ["opcode","operands"] 
         opcode=splitted[0].upper().strip()
         #print(opcode)
-        if opcode=="MEM": #MEM is a pseudo-instruction to place data in memory. 
+        if opcode=="MEM": #MEM is a pseudo-instruction to place data in memory. MEM <VALUE> <location>, i think
             operands=splitted[1]
             operands=operands.strip().split(",") #separates using ", ". now each operand is distinct.
-            #print("ARGH 2!")
-            #print(f"operands {operands}")
-            if find_type(operands[0]) != "DIRECT":
-                    return "ERROR: MEM OPERAND1 MUST BE DIRECT"
-            
-            if find_type(operands[1])!="IMMEDIATE":
-                return "ERROR: MEM OPERAND 2 MUST BE IMMEDIATE"
+            if find_type(operands[0].strip()) != "DIRECT":
+                    return "ERROR: MEM OPERAND1 MUST BE DIRECT (I.E. A LOCATION IN MEMORY)"
+            if find_type(operands[1].strip())!="IMMEDIATE": 
+                return "ERROR: MEM OPERAND 2 MUST BE IMMEDIATE (I.E. A SPECIFIC VALUE.)"
             else:
+                operands[1]=operands[1][1:] #remove "#" from the 2nd operand, to stop errors
                 return ["MEM",[operands[0],[operands[1][1:]]]],False
         if opcode=="HALT":
             return ["INSTRUCTION",["HALT",[]]],False #exit parser. empty array used as empty "operands"
@@ -154,10 +151,8 @@ def parse(line,line_number):
         stage_2_output.append(decoded_operands)
         return ["INSTRUCTION",stage_2_output],False
         #print(output)
-    except:
-        print(splitted)
-        print(f"Es gibt ein Fehler: {operand}")
-        if len(line.strip())==0:
+    except: #for some reason, command has not worked.
+        if len(line.strip())==0: 
             return ["DATA",0],False
         if len(splitted)==0:
             print(f"FATAL ERROR: Command written incorrectly. Check for whitespace characters like a space.")
@@ -168,10 +163,9 @@ def getLabels(label_f):
     labels={}
     for label in label_f:
         label=label.strip()
-        if label[-1:]==":": #assume label
+        if label[-1:]==":": #[-1:] grabs the final character of the line. If it is a ":", assume this is a label
             #print("THIS LINE IS A LABEL")
             #print(line_number)
-
             stage_2=label.strip()[0:len(label.strip())-1] #get all of opcode, except for ":". .strip() removes whitespace
             labels.update({stage_2:line_number})
         line_number+=1
@@ -228,6 +222,6 @@ def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryo
 
 
 if __name__ =="__main__":
-    print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme("MOV r1,#25\nMOV r2,#3\n LSR r1,r1,r2\nOUTPUT r1\nB END\nEND:\nHALT")) #test <OUTPUT #2\nB labelname \n HALT\n jjjj \n labelname: \n OUTPUT labelname \n HALT\n>
+    print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme("MEM 100,#2\nMEM 101,#3")) #test <OUTPUT #2\nB labelname \n HALT\n jjjj \n labelname: \n OUTPUT labelname \n HALT\n>
 
     #getLabels("Label1:\nLabel2:\nLabel3 :\n") test for getLabels(). Should produce {"Label1": 0, "Label2": 1, "Label3": 2}

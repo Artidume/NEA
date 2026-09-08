@@ -2,7 +2,7 @@
 <head>
     <style>
         body {
-            background-color:aquamarine;
+            background-color:rgb(127, 204, 255);
         }
         input {
             border: 10px red;
@@ -10,13 +10,24 @@
         #assembly-box {
             position:absolute 2
         }
+        #debug_button{
+            position:absolute 3;
+            background-color: rgb(0, 162, 255);
+            border: 5px;
+            box-shadow: inset;
+        }
+
     </style>
 </head>
 <body>
     <form action="/output" method="post">
         <label for="program">Input Program</label>
         <textarea id="program" name="program" required></textarea>
-        <input type="submit">
+        <input type="submit" value="Run Program">
+        <div id="debug_button">
+        <input type="checkbox" name="debug_flag" id="debug-erino" value="True">
+        <label  for="debug-erino">Debug Mode</label>
+        </div>
     </form>
     <div id="assembly-box">
         <p>
