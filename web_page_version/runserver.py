@@ -1,6 +1,37 @@
 from flask import Flask, render_template, request
 import main_WEB
+import sqlite3 #used for database handling
+#init database
 
+
+def sqlite3_command_non_output(command):
+    con=sqlite3.connect("NEA_DATABASE.db")
+    cursor=con.cursor()
+    try:
+        cursor.execute(command)
+        con.commit()
+    finally:
+        cursor.close()
+        con.close()
+
+def sqlite3_command_output(command):
+    con=sqlite3.connect("NEA_DATABASE.db")
+    cur=con.cursor()
+    try:
+        cur.execute(command)
+        results=[]
+        for result in cur:
+            results.append(result)
+    finally:
+        if results is None:
+            results=[]
+        cur.close()
+        con.close()
+    return results
+#sqlite3_command_non_output("INSERT INTO users VALUES('test','test2',3)")
+#print(sqlite3_command_output("SELECT * FROM users"))
+
+#init webserver
 app=Flask(__name__)
 
 @app.route("/")
@@ -35,4 +66,4 @@ def output_debug():
     output=main_WEB.run_program(True,data["program"])
     #print(output)
     return render_template("output_program.html",output=output)
-app.run(debug=True,host="0.0.0.0", port=5000)
+app.run(debug=True,host="0.0.0.0", port=5000) #run server
