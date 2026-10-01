@@ -14,7 +14,7 @@ def get_logins():
                 pass
         
         return output #multidimensional array, each item in it is a login with all data from login stored in an array. e.g. [[username1,password1],[username2,password2],...]
-def query_user(id):
+def query_user(id): #id:integer
     id=str(id) #make comparison faster, since login[0] will be a string. If I had done int(login[0]) instead, that would be called once for every login. much slower.
     logins = get_logins()
     #could do binary search here but im tired :(
@@ -22,14 +22,14 @@ def query_user(id):
         if login[0]==id:
             return login #return all info about user
     return "NOT FOUND" #searched through all of list, didn't find it! cry.
-def add_user(id,username,password):
+def add_user(id,username,password): #id:integer, username:string, password:string
     #inputting id as 0 implies add with no specific id in mind. therefore, make id the NEXT id number (autoincrement)
     if id==0:
         accounts=get_logins()
         all_ids_used=[]
         for account in accounts:
             all_ids_used.append(account[0])
-        print(all_ids_used)
+        #print(all_ids_used)
         new_id=1
         for i in range(0,len(accounts)+1):
             if str(new_id) in all_ids_used:
@@ -65,24 +65,29 @@ def add_user(id,username,password):
 
 
     if id_is_unique and username_is_unique:
-        print(id,username,password)
+        #print(id,username,password)
         with open("web_page_version/databases/login_database.csv","a") as f:
-            f.write(f"\n{id}, {username}, {password}")
+            f.write(f"{id}, {username}, {password}\n")
     else:
-        print("error with id or username.")
         if id_is_unique:
-            print("it's the username.")
+            print("error with username.")
         else:
-            print("it's the id.")
+            print("error with id.")
     return 0
-def delete_user(id):
+def delete_user(id): #id:integer
+    #this technique involves reading the file, and then rewriting the file for everything excluding the account for that id. takes O(n) time (technically O(2n) but that's not how notation works)
     accounts=get_logins()
-    #this technique involves reading the file, and then rewriting the file for everything excluding that id.
     with open("web_page_version/databases/login_database.csv","w") as f:
-        for line in accounts:
-            if line[0]!=id:
-                f.write(line)
+        f.write("")
+    for line in accounts:
+        if line[0]!=str(id):
+            add_user(line[0],line[1],line[2]) #add back every user that does not have the deleted user id.
+    
 
     
 if __name__=="__main__":
     add_user(0,"guy3345333","password")
+    add_user(0,"pok","pokpok")
+    add_user(0,"5u|)3RH4XX0R","password123")
+    delete_user(1)
+    print(get_logins())
