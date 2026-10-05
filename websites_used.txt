@@ -7,4 +7,3 @@ https://www.geeksforgeeks.org/python/check-if-value-is-int-or-float-in-python/ f
 
 Required modules:
 Flask - webserver
-SQLite3 - databases

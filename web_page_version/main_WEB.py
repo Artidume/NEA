@@ -520,7 +520,7 @@ class Program:
         while self.isRunning:
             self.fetch_execute_cycle()
             self.program_run_time_count+=1
-            if self.program_run_time_count>=max_runtime: #if it's been running for WAY too long. (ten thousand cycles at the moment)
+            if self.program_run_time_count>=max_runtime: #if it's been running for WAY too long. (ten thousand cycles at the moment, set at top of program)
                 pseudo_print("YOUR PROGRAM HAS EXCEEDED MAX RUNTIME. NOTE THAT THIS IS A LARGE NUMBER, SO IT IS LIKELY YOU HAVE AN INFINITE LOOP.")
                 self.isRunning=False
 
@@ -572,4 +572,4 @@ if __name__=="__main__":
     file = "LDR r2,#3"
     print(run_program(debug_flag,file))'''
     
-    print(run_program(True,"MOV r1,#25\nMOV r2,#3\n LSR r1,r1,r2\nOUTPUT r1\nB END\nEND:\nOUTPUT #360\nHALT")) #type a program here to debug it locally
+    print(run_program(True,"MOV r1,#25\nMOV r2,#3\n LSR r1,r1,r2\nOUTPUT r1\nB END\nEND:\nOUTPUT #360\nHALT")) #type a program here to debug it locally 

@@ -172,7 +172,7 @@ def getLabels(label_f):
     #print(labels)
     return labels
 
-def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme(file):
+def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme(file): #see function name
     program=[]
     global labels
     labels={}
@@ -221,7 +221,7 @@ def getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryo
         return "ERROR"
 
 
-if __name__ =="__main__":
+if __name__ =="__main__": #if you want to debug the parser, type your assembly program in the quotations.
     print(getprogramfromfileusingcustomfileextensionbecauseimreallyreallycoolandeveryonelikesme("MEM 100,#2\nMEM 101,#3")) #test <OUTPUT #2\nB labelname \n HALT\n jjjj \n labelname: \n OUTPUT labelname \n HALT\n>
 
     #getLabels("Label1:\nLabel2:\nLabel3 :\n") test for getLabels(). Should produce {"Label1": 0, "Label2": 1, "Label3": 2}
