@@ -9,4 +9,4 @@ https://www.geeksforgeeks.org/python/sqlalchemy-core-executing-expression/ learn
 
 Required modules:
 Flask - webserver
-Flask_sqlalchemy - sql
+sqlalchemy - used for databases, sql commands.
