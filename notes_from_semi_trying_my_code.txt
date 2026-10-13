@@ -1,0 +1,8 @@
+- make instructions more clear (he initially tried MOV R1, b1010)
+- Allow for empty lines (i.e. "MOV R1\n\nMULT:\n") 
+- explain the extra commands (OUTPUT, MEM)
+**** debug mode is maybe a bit too verbose for the average user. some kind of "middle ground"?
+- "Let the person know they have an error before they run it"
+**** debug mode is DEFINITELY too verbose for the average user. remove showing program in memory, or have some kinda "uber duber super debug flag"
+- LAYOUT. have the "instructions photo" in its own div on the left,
+and make the  program input box larger by default.

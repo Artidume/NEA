@@ -205,9 +205,7 @@ class Program:
         
     def CMP(self,operands): #(n,operand2,optype1,optype2)
         #note on cmp_output. It stores all flags (GT, LT, NE, etc) in one string, separated by spaces. 
-        if self.cmp_output != "":
-            pseudo_print("ERROR: Comparison previously performed, but not used. The program will ignore the old comparison. Are you missing a branch instruction?")
-        self.cmp_output=""
+        self.cmp_output="" #reset cmp flags
         if self.debug_mode:
             pseudo_print(f"OPERANDS FOR CMP INSTRUCTION: {operands}")
 
